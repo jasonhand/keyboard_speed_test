@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Test & Keyboard Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Datadog RUM SDK -->
+    <script>
+      (function(h,o,u,n,d) {
+        h=h[d]=h[d]||{q:[],onReady:function(c){h.q.push(c)}}
+        d=o.createElement(u);d.async=1;d.src=n
+        n=o.getElementsByTagName(u)[0];n.parentNode.insertBefore(d,n)
+      })(window,document,'script','https://www.datadoghq-browser-agent.com/us1/v6/datadog-rum.js','DD_RUM')
+      window.DD_RUM.onReady(function() {
+        window.DD_RUM.init({
+          clientToken: 'pubc7932cbc69c976016659135760251538',
+          applicationId: 'b7e70078-1335-4a18-abc8-30a557d61174',
+          site: 'datadoghq.com',
+          service: 'keyboard-speed-tests',
+          env: 'prod',
+          version: '1.2.0', // Updated version for this fix
+          sessionSampleRate: 100,
+          sessionReplaySampleRate: 100,
+          defaultPrivacyLevel: 'mask-user-input',
+        });
+      })
+    </script>
+    <!-- End Datadog RUM SDK -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .caret {
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .correct { color: #4ade80; } /* green-400 */
+        .incorrect { color: #f87171; text-decoration: underline; } /* red-400 */
+        .untyped { color: #9ca3af; } /* gray-400 */
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div id="app" class="w-full max-w-4xl mx-auto">
+
+        <!-- Setup Screen -->
+        <div id="setup-screen" class="text-center space-y-8">
+            <h1 class="text-5xl font-bold text-white">Typing Test & Keyboard Analyzer</h1>
+            <p class="text-lg text-gray-400">Test your speed and accuracy. Compare your performance across different keyboards.</p>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md mx-auto space-y-4">
+                <div>
+                    <label for="keyboard-model" class="block text-sm font-medium text-gray-300 mb-2">Keyboard Model</label>
+                    <input type="text" id="keyboard-model" class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="e.g., Keychron Q1, Model M...">
+                </div>
+                <div>
+                    <label for="test-duration" class="block text-sm font-medium text-gray-300 mb-2">Test Duration</label>
+                    <select id="test-duration" class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="30">30 seconds</option>
+                        <option value="60" selected>1 minute</option>
+                        <option value="120">2 minutes</option>
+                    </select>
+                </div>
+                <button id="start-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
+                    Start Typing Test
+                </button>
+            </div>
+        </div>
+
+        <!-- Typing Test Screen -->
+        <div id="test-screen" class="hidden">
+            <div class="grid grid-cols-4 gap-4 text-center mb-6">
+                <div id="wpm-display" class="bg-gray-800 p-4 rounded-lg"><span class="text-4xl font-bold">0</span><span class="text-gray-400"> WPM</span></div>
+                <div id="acc-display" class="bg-gray-800 p-4 rounded-lg"><span class="text-4xl font-bold">100</span><span class="text-gray-400">% Acc</span></div>
+                <div id="errors-display" class="bg-gray-800 p-4 rounded-lg"><span class="text-4xl font-bold">0</span><span class="text-gray-400"> Errors</span></div>
+                <div id="timer-display" class="bg-gray-800 p-4 rounded-lg"><span class="text-4xl font-bold">60</span><span class="text-gray-400">s</span></div>
+            </div>
+            <div id="text-prompt-container" class="relative bg-gray-800 p-6 rounded-lg text-2xl leading-relaxed font-mono tracking-wider mb-4" style="min-height: 160px;">
+                <p id="text-prompt"></p>
+                <div id="caret" class="caret absolute bg-indigo-500" style="width: 2px; height: 2rem; top: 1.5rem; left: 1.5rem;"></div>
+            </div>
+            <input type="text" id="typing-input" class="opacity-0 absolute" autofocus>
+            <div class="text-center">
+                <button id="restart-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-md transition duration-300">Restart</button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden text-center bg-gray-800 p-8 rounded-lg shadow-2xl">
+            <h2 class="text-4xl font-bold mb-4">Test Complete!</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-white">
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <p class="text-gray-400 text-sm">WPM</p>
+                    <p id="result-wpm" class="text-5xl font-bold">0</p>
+                </div>
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <p class="text-gray-400 text-sm">Accuracy</p>
+                    <p id="result-acc" class="text-5xl font-bold">0%</p>
+                </div>
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <p class="text-gray-400 text-sm">Keyboard</p>
+                    <p id="result-keyboard" class="text-2xl font-semibold mt-3 truncate" title="Keyboard Model">N/A</p>
+                </div>
+            </div>
+            <div class="mb-6">
+                <p class="text-gray-400 text-sm mb-2">Share Your Result</p>
+                <input type="text" id="share-url" class="w-full bg-gray-600 border border-gray-500 rounded-md px-3 py-2 text-gray-200 focus:outline-none" readonly>
+            </div>
+            <div class="flex justify-center space-x-4">
+                <button id="new-test-btn" class="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md transition duration-300">New Test</button>
+                <button id="copy-url-btn" class="w-1/2 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-md transition duration-300">Copy URL</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const app = document.getElementById('app');
+            const setupScreen = document.getElementById('setup-screen');
+            const testScreen = document.getElementById('test-screen');
+            const resultsScreen = document.getElementById('results-screen');
+
+            const keyboardModelInput = document.getElementById('keyboard-model');
+            const testDurationSelect = document.getElementById('test-duration');
+            const startBtn = document.getElementById('start-btn');
+            
+            const wpmDisplay = document.getElementById('wpm-display').querySelector('span:first-child');
+            const accDisplay = document.getElementById('acc-display').querySelector('span:first-child');
+            const errorsDisplay = document.getElementById('errors-display').querySelector('span:first-child');
+            const timerDisplay = document.getElementById('timer-display').querySelector('span:first-child');
+            
+            const textPromptContainer = document.getElementById('text-prompt-container');
+            const textPrompt = document.getElementById('text-prompt');
+            const typingInput = document.getElementById('typing-input');
+            const caret = document.getElementById('caret');
+            const restartBtn = document.getElementById('restart-btn');
+
+            const resultWpm = document.getElementById('result-wpm');
+            const resultAcc = document.getElementById('result-acc');
+            const resultKeyboard = document.getElementById('result-keyboard');
+            const shareUrlInput = document.getElementById('share-url');
+            const newTestBtn = document.getElementById('new-test-btn');
+            const copyUrlBtn = document.getElementById('copy-url-btn');
+
+            // --- Text Samples ---
+            const textSamples = [
+                "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet. It's a classic for a reason.",
+                "Programming is the process of creating a set of instructions that tell a computer how to perform a task. It can be both a challenging and rewarding field.",
+                "The sun dipped below the horizon, painting the sky in shades of orange and purple. A gentle breeze rustled the leaves in the trees.",
+                "To be, or not to be, that is the question: Whether 'tis nobler in the mind to suffer The slings and arrows of outrageous fortune, Or to take arms against a sea of troubles.",
+                "The history of the world is but the biography of great men. What we learn from history is that we do not learn from history.",
+                "Technology has revolutionized the way we live and work. From smartphones to artificial intelligence, its impact is undeniable.",
+                "A journey of a thousand miles begins with a single step. It's important to remember that progress, no matter how small, is still progress.",
+                "The financial markets are complex and ever-changing. Investors must stay informed to navigate the fluctuations and make wise decisions.",
+                "The majestic mountains stood tall against the clear blue sky. Their snow-capped peaks glistened in the sunlight, a breathtaking sight to behold."
+            ];
+
+            // --- App State ---
+            let state = {
+                testDuration: 60,
+                timer: null,
+                timeLeft: 60,
+                testActive: false,
+                promptText: '',
+                typedChars: 0,
+                correctChars: 0,
+                errorCount: 0,
+                keyboardModel: 'Unknown'
+            };
+
+            // --- Functions ---
+            const init = () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('wpm')) {
+                    displayResultsFromURL(urlParams);
+                } else {
+                    showSetupScreen();
+                }
+                addEventListeners();
+            };
+
+            const addEventListeners = () => {
+                startBtn.addEventListener('click', startTest);
+                restartBtn.addEventListener('click', () => {
+                    if (window.DD_RUM && typeof window.DD_RUM.addAction === 'function') {
+                        window.DD_RUM.addAction('restart_test', {
+                            context: {
+                                timeLeft: state.timeLeft,
+                                typedChars: state.typedChars
+                            }
+                        });
+                    }
+                    resetTest();
+                });
+                newTestBtn.addEventListener('click', () => {
+                    window.history.pushState({}, '', window.location.pathname);
+                    showSetupScreen();
+                });
+                copyUrlBtn.addEventListener('click', copyShareUrl);
+                typingInput.addEventListener('input', handleTyping);
+                textPromptContainer.addEventListener('click', () => typingInput.focus());
+            };
+
+            const showSetupScreen = () => {
+                setupScreen.classList.remove('hidden');
+                testScreen.classList.add('hidden');
+                resultsScreen.classList.add('hidden');
+            };
+
+            const showTestScreen = () => {
+                setupScreen.classList.add('hidden');
+                testScreen.classList.remove('hidden');
+                resultsScreen.classList.add('hidden');
+                typingInput.focus();
+            };
+
+            const showResultsScreen = () => {
+                setupScreen.classList.add('hidden');
+                testScreen.classList.add('hidden');
+                resultsScreen.classList.remove('hidden');
+            };
+
+            const startTest = () => {
+                state.keyboardModel = keyboardModelInput.value.trim() || 'Unknown';
+                state.testDuration = parseInt(testDurationSelect.value, 10);
+                state.timeLeft = state.testDuration;
+                timerDisplay.textContent = state.timeLeft;
+                
+                if (window.DD_RUM && typeof window.DD_RUM.addAction === 'function') {
+                    window.DD_RUM.addAction('start_test', {
+                        context: {
+                            keyboardModel: state.keyboardModel,
+                            testDuration: state.testDuration
+                        }
+                    });
+                }
+
+                resetTestState();
+                setNewPrompt();
+                showTestScreen();
+            };
+            
+            const resetTest = () => {
+                clearInterval(state.timer);
+                state.timer = null;
+                state.timeLeft = state.testDuration;
+                timerDisplay.textContent = state.timeLeft;
+                resetTestState();
+                setNewPrompt();
+                typingInput.focus();
+            };
+
+            const resetTestState = () => {
+                state.testActive = false;
+                state.typedChars = 0;
+                state.correctChars = 0;
+                state.errorCount = 0;
+                typingInput.value = '';
+                wpmDisplay.textContent = '0';
+                accDisplay.textContent = '100';
+                errorsDisplay.textContent = '0';
+            };
+
+            const setNewPrompt = () => {
+                state.promptText = textSamples[Math.floor(Math.random() * textSamples.length)];
+                textPrompt.innerHTML = state.promptText.split('').map(char => `<span class="untyped">${char}</span>`).join('');
+                updateCaretPosition();
+            };
+
+            const handleTyping = () => {
+                if (!state.testActive && typingInput.value.length > 0) {
+                    startTimer();
+                }
+
+                const typedText = typingInput.value;
+                const promptSpans = textPrompt.querySelectorAll('span');
+                state.typedChars = typedText.length;
+                state.correctChars = 0;
+                state.errorCount = 0;
+
+                promptSpans.forEach((charSpan, index) => {
+                    const char = typedText[index];
+                    if (char == null) {
+                        charSpan.className = 'untyped';
+                    } else if (char === charSpan.innerText) {
+                        charSpan.className = 'correct';
+                        state.correctChars++;
+                    } else {
+                        charSpan.className = 'incorrect';
+                        state.errorCount++;
+                    }
+                });
+                
+                updateStats();
+                updateCaretPosition();
+
+                if (state.typedChars === state.promptText.length) {
+                    endTest();
+                }
+            };
+
+            const startTimer = () => {
+                state.testActive = true;
+                const startTime = Date.now();
+
+                state.timer = setInterval(() => {
+                    const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                    state.timeLeft = state.testDuration - elapsedTime;
+                    timerDisplay.textContent = state.timeLeft;
+                    
+                    if(state.testActive) {
+                       updateStats();
+                    }
+
+                    if (state.timeLeft <= 0) {
+                        endTest();
+                    }
+                }, 1000);
+            };
+
+            const updateStats = () => {
+                const elapsedTime = state.testDuration - state.timeLeft;
+                const wpm = elapsedTime > 0 ? Math.round((state.correctChars / 5) / (elapsedTime / 60)) : 0;
+                const accuracy = state.typedChars > 0 ? Math.round((state.correctChars / state.typedChars) * 100) : 100;
+
+                wpmDisplay.textContent = wpm;
+                accDisplay.textContent = accuracy;
+                errorsDisplay.textContent = state.errorCount;
+            };
+
+            const updateCaretPosition = () => {
+                const promptSpans = textPrompt.querySelectorAll('span');
+                const lastTypedChar = promptSpans[state.typedChars - 1];
+                const nextChar = promptSpans[state.typedChars];
+
+                if (state.typedChars === 0) {
+                    caret.style.top = `${nextChar.offsetTop}px`;
+                    caret.style.left = `${nextChar.offsetLeft}px`;
+                } else if (nextChar) {
+                    caret.style.top = `${nextChar.offsetTop}px`;
+                    caret.style.left = `${nextChar.offsetLeft}px`;
+                } else { 
+                    caret.style.top = `${lastTypedChar.offsetTop}px`;
+                    caret.style.left = `${lastTypedChar.offsetLeft + lastTypedChar.offsetWidth}px`;
+                }
+                caret.style.height = `${nextChar ? nextChar.offsetHeight : lastTypedChar.offsetHeight}px`;
+            };
+
+            const endTest = () => {
+                clearInterval(state.timer);
+                state.testActive = false;
+                typingInput.blur();
+
+                const elapsedTime = state.testDuration - state.timeLeft;
+                const finalWpm = elapsedTime > 0 ? Math.round((state.correctChars / 5) / (elapsedTime / 60)) : 0;
+                const finalAccuracy = state.typedChars > 0 ? Math.round((state.correctChars / state.typedChars) * 100) : 100;
+                
+                if (window.DD_RUM && typeof window.DD_RUM.addAction === 'function') {
+                    window.DD_RUM.addAction('test_completed', {
+                        context: {
+                            wpm: finalWpm,
+                            accuracy: finalAccuracy,
+                            errors: state.errorCount,
+                            keyboardModel: state.keyboardModel
+                        }
+                    });
+                }
+
+                resultWpm.textContent = finalWpm;
+                resultAcc.textContent = `${finalAccuracy}%`;
+                resultKeyboard.textContent = state.keyboardModel;
+                resultKeyboard.title = state.keyboardModel;
+
+                generateShareUrl(finalWpm, finalAccuracy);
+                showResultsScreen();
+            };
+
+            const generateShareUrl = (wpm, accuracy) => {
+                const params = new URLSearchParams({
+                    wpm: wpm,
+                    acc: accuracy,
+                    kb: state.keyboardModel,
+                    ts: new Date().toISOString(),
+                    text: btoa(state.promptText)
+                });
+                const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+                shareUrlInput.value = url;
+                window.history.pushState({ wpm, accuracy }, '', url);
+            };
+
+            const copyShareUrl = () => {
+                if (window.DD_RUM && typeof window.DD_RUM.addAction === 'function') {
+                    window.DD_RUM.addAction('copy_share_url');
+                }
+                shareUrlInput.select();
+                try {
+                    document.execCommand('copy');
+                    copyUrlBtn.textContent = 'Copied!';
+                    setTimeout(() => { copyUrlBtn.textContent = 'Copy URL'; }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy URL: ', err);
+                    alert('Failed to copy. Please copy the URL manually.');
+                }
+            };
+            
+            const displayResultsFromURL = (params) => {
+                resultWpm.textContent = params.get('wpm') || 0;
+                resultAcc.textContent = `${params.get('acc') || 100}%`;
+                const keyboard = params.get('kb') || 'Unknown';
+                resultKeyboard.textContent = keyboard;
+                resultKeyboard.title = keyboard;
+
+                shareUrlInput.value = window.location.href;
+                showResultsScreen();
+            };
+
+            // --- Start the App ---
+            init();
+        });
+    </script>
+</body>
+</html>
