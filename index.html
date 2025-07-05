@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Typing Test & Keyboard Analyzer</title>
+    <title>Datadog Typing Test & Keyboard Analyzer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     
@@ -46,19 +46,6 @@
         .correct { color: #4ade80; } /* green-400 */
         .incorrect { color: #f87171; text-decoration: underline; } /* red-400 */
         .untyped { color: #9ca3af; } /* gray-400 */
-        
-        /* Toggle Switch Styles */
-        .toggle-checkbox:checked {
-            right: 0;
-            border-color: #6366f1;
-            transform: translateX(100%);
-        }
-        .toggle-checkbox:checked + .toggle-label {
-            background-color: #6366f1;
-        }
-        .toggle-label {
-            transition: background-color 0.2s ease-in-out;
-        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen p-4">
@@ -67,27 +54,12 @@
 
         <!-- Setup Screen -->
         <div id="setup-screen" class="text-center space-y-8">
-            <h1 class="text-5xl font-bold text-white">Jason's Typing Test & Keyboard Analyzer Skillz Challenge Website Mojo DOJO</h1>
-            <p class="text-lg text-gray-400">Test your speed and accuracy. Compare your performance across different keyboards.</p>
+            <h1 class="text-5xl font-bold text-white">Datadog Typing Test & Keyboard Analyze</h1>
+            <p class="text-lg text-gray-400">Test your typing speed with Datadog documentation. Compare your performance across different keyboards.</p>
             <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md mx-auto space-y-4">
                 <div>
                     <label for="keyboard-model" class="block text-sm font-medium text-gray-300 mb-2">Keyboard Model</label>
                     <input type="text" id="keyboard-model" class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="e.g., Keychron Q1, Model M...">
-                </div>
-                <div>
-                    <label for="test-duration" class="block text-sm font-medium text-gray-300 mb-2">Test Duration</label>
-                    <select id="test-duration" class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <option value="30">30 seconds</option>
-                        <option value="60" selected>1 minute</option>
-                        <option value="120">2 minutes</option>
-                    </select>
-                </div>
-                <div class="flex items-center justify-between">
-                    <label class="text-sm font-medium text-gray-300">Use Datadog Documentation</label>
-                    <div class="relative inline-block w-12 mr-2 align-middle select-none">
-                        <input type="checkbox" id="datadog-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out"/>
-                        <label for="datadog-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                    </div>
                 </div>
                 <button id="start-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
                     Start Typing Test
@@ -101,7 +73,7 @@
                 <div id="wpm-display" class="bg-gray-800 p-4 rounded-lg"><span class="text-4xl font-bold">0</span><span class="text-gray-400"> WPM</span></div>
                 <div id="acc-display" class="bg-gray-800 p-4 rounded-lg"><span class="text-4xl font-bold">100</span><span class="text-gray-400">% Acc</span></div>
                 <div id="errors-display" class="bg-gray-800 p-4 rounded-lg"><span class="text-4xl font-bold">0</span><span class="text-gray-400"> Errors</span></div>
-                <div id="timer-display" class="bg-gray-800 p-4 rounded-lg"><span class="text-4xl font-bold">60</span><span class="text-gray-400">s</span></div>
+                <div id="timer-display" class="bg-gray-800 p-4 rounded-lg"><span class="text-4xl font-bold">30</span><span class="text-gray-400">s</span></div>
             </div>
             <div id="text-prompt-container" class="relative bg-gray-800 p-6 rounded-lg text-2xl leading-relaxed font-mono tracking-wider mb-4" style="min-height: 160px;">
                 <p id="text-prompt"></p>
@@ -140,6 +112,12 @@
                     View in Datadog Documentation
                 </a>
             </div>
+            <div class="mb-6">
+                <p class="text-gray-400 text-sm mb-2">Ready to try Datadog?</p>
+                <a href="https://app.datadoghq.com" target="_blank" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-md transition duration-300 transform hover:scale-105">
+                    Try Datadog Free
+                </a>
+            </div>
             <div class="flex justify-center space-x-4">
                 <button id="new-test-btn" class="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md transition duration-300">New Test</button>
                 <button id="copy-url-btn" class="w-1/2 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-md transition duration-300">Copy URL</button>
@@ -157,9 +135,7 @@
             const resultsScreen = document.getElementById('results-screen');
 
             const keyboardModelInput = document.getElementById('keyboard-model');
-            const testDurationSelect = document.getElementById('test-duration');
             const startBtn = document.getElementById('start-btn');
-            const datadogToggle = document.getElementById('datadog-toggle');
             
             const wpmDisplay = document.getElementById('wpm-display').querySelector('span:first-child');
             const accDisplay = document.getElementById('acc-display').querySelector('span:first-child');
@@ -180,19 +156,6 @@
             const copyUrlBtn = document.getElementById('copy-url-btn');
             const datadogSource = document.getElementById('datadog-source');
             const datadogLink = document.getElementById('datadog-link');
-
-            // --- Text Samples ---
-            const textSamples = [
-                "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet. It's a classic for a reason.",
-                "Programming is the process of creating a set of instructions that tell a computer how to perform a task. It can be both a challenging and rewarding field.",
-                "The sun dipped below the horizon, painting the sky in shades of orange and purple. A gentle breeze rustled the leaves in the trees.",
-                "To be, or not to be, that is the question: Whether 'tis nobler in the mind to suffer The slings and arrows of outrageous fortune, Or to take arms against a sea of troubles.",
-                "The history of the world is but the biography of great men. What we learn from history is that we do not learn from history.",
-                "Technology has revolutionized the way we live and work. From smartphones to artificial intelligence, its impact is undeniable.",
-                "A journey of a thousand miles begins with a single step. It's important to remember that progress, no matter how small, is still progress.",
-                "The financial markets are complex and ever-changing. Investors must stay informed to navigate the fluctuations and make wise decisions.",
-                "The majestic mountains stood tall against the clear blue sky. Their snow-capped peaks glistened in the sunlight, a breathtaking sight to behold."
-            ];
 
             // --- Datadog Documentation Snippets ---
             const datadogSnippets = [
@@ -250,16 +213,16 @@
 
             // --- App State ---
             let state = {
-                testDuration: 60,
+                testDuration: 30,
                 timer: null,
-                timeLeft: 60,
+                timeLeft: 30,
                 testActive: false,
                 promptText: '',
                 typedChars: 0,
                 correctChars: 0,
                 errorCount: 0,
                 keyboardModel: 'Unknown',
-                useDatadog: false,
+                useDatadog: true,
                 datadogSource: null
             };
 
@@ -317,9 +280,8 @@
 
             const startTest = () => {
                 state.keyboardModel = keyboardModelInput.value.trim() || 'Unknown';
-                state.testDuration = parseInt(testDurationSelect.value, 10);
                 state.timeLeft = state.testDuration;
-                state.useDatadog = datadogToggle.checked;
+                state.useDatadog = true;
                 timerDisplay.textContent = state.timeLeft;
                 
                 if (window.DD_RUM && typeof window.DD_RUM.addAction === 'function') {
@@ -359,14 +321,9 @@
             };
 
             const setNewPrompt = () => {
-                if (state.useDatadog) {
-                    const randomSnippet = datadogSnippets[Math.floor(Math.random() * datadogSnippets.length)];
-                    state.promptText = randomSnippet.text;
-                    state.datadogSource = randomSnippet;
-                } else {
-                    state.promptText = textSamples[Math.floor(Math.random() * textSamples.length)];
-                    state.datadogSource = null;
-                }
+                const randomSnippet = datadogSnippets[Math.floor(Math.random() * datadogSnippets.length)];
+                state.promptText = randomSnippet.text;
+                state.datadogSource = randomSnippet;
                 textPrompt.innerHTML = state.promptText.split('').map(char => `<span class="untyped">${char}</span>`).join('');
                 updateCaretPosition();
             };
@@ -476,13 +433,11 @@
                 resultKeyboard.textContent = state.keyboardModel;
                 resultKeyboard.title = state.keyboardModel;
 
-                // Show/hide Datadog source link
-                if (state.useDatadog && state.datadogSource) {
+                // Always show Datadog source link since all tests use Datadog content
+                if (state.datadogSource) {
                     datadogLink.href = state.datadogSource.source;
                     datadogLink.textContent = `${state.datadogSource.title} - Datadog Documentation`;
                     datadogSource.classList.remove('hidden');
-                } else {
-                    datadogSource.classList.add('hidden');
                 }
 
                 generateShareUrl(finalWpm, finalAccuracy);
@@ -498,8 +453,8 @@
                     text: btoa(state.promptText)
                 });
                 
-                // Add Datadog source info if used
-                if (state.useDatadog && state.datadogSource) {
+                // Always add Datadog source info since all tests use Datadog content
+                if (state.datadogSource) {
                     params.append('dd', '1');
                     params.append('dd_title', state.datadogSource.title);
                     params.append('dd_source', state.datadogSource.source);
