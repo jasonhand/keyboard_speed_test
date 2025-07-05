@@ -182,7 +182,7 @@
                     Try Datadog Free
                 </a>
             </div>
-            <div class="flex justify-center space-x-4">
+            <div id="results-actions" class="flex justify-center space-x-4">
                 <button id="new-test-btn" class="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md transition duration-300">New Test</button>
                 <button id="copy-url-btn" class="w-1/2 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-md transition duration-300">Copy URL</button>
             </div>
@@ -255,6 +255,7 @@
             const resultAcc = document.getElementById('result-acc');
             const resultKeyboard = document.getElementById('result-keyboard');
             const shareUrlInput = document.getElementById('share-url');
+            const resultsActions = document.getElementById('results-actions');
             const newTestBtn = document.getElementById('new-test-btn');
             const copyUrlBtn = document.getElementById('copy-url-btn');
             const datadogSource = document.getElementById('datadog-source');
@@ -402,6 +403,9 @@
                 testScreen.classList.add('hidden');
                 resultsScreen.classList.remove('hidden');
                 hideToast(); // Hide any existing toast
+                
+                // Ensure results actions are visible (in case toast was dismissed)
+                resultsActions.classList.remove('hidden');
             };
 
             const startTest = () => {
@@ -641,6 +645,9 @@
                 bitsToast.classList.remove('hidden');
                 bitsToast.classList.add('toast-enter');
                 
+                // Hide results actions when toast is shown
+                resultsActions.classList.add('hidden');
+                
                 // Trigger animation
                 setTimeout(() => {
                     bitsToast.classList.remove('toast-enter');
@@ -656,6 +663,9 @@
             const hideToast = () => {
                 bitsToast.classList.remove('toast-enter-active');
                 bitsToast.classList.add('toast-exit');
+                
+                // Show results actions when toast is hidden
+                resultsActions.classList.remove('hidden');
                 
                 setTimeout(() => {
                     bitsToast.classList.add('hidden');
