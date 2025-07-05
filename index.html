@@ -83,6 +83,20 @@
             opacity: 0;
             transition: all 0.3s ease-in;
         }
+        
+        /* Timer Warning Animation */
+        .timer-warning {
+            animation: flashRed 1s ease-in-out;
+        }
+        
+        @keyframes flashRed {
+            0%, 100% { 
+                background-color: rgba(17, 24, 39, 0.85); /* normal background */
+            }
+            50% { 
+                background-color: rgba(239, 68, 68, 0.3); /* red flash */
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen p-4">
@@ -327,7 +341,8 @@
                 errorCount: 0,
                 userName: 'Unknown',
                 useDatadog: true,
-                datadogSource: null
+                datadogSource: null,
+                warningTimer: null
             };
 
             // --- Functions ---
@@ -434,6 +449,7 @@
                 state.timer = null;
                 state.timeLeft = state.testDuration;
                 timerDisplay.textContent = state.timeLeft;
+                stopWarningEffect();
                 resetTestState();
                 setNewPrompt();
                 typingInput.focus();
@@ -448,6 +464,7 @@
                 wpmDisplay.textContent = '0';
                 accDisplay.textContent = '100';
                 errorsDisplay.textContent = '0';
+                stopWarningEffect();
             };
 
             const setNewPrompt = () => {
@@ -499,6 +516,11 @@
                     state.timeLeft = state.testDuration - elapsedTime;
                     timerDisplay.textContent = state.timeLeft;
                     
+                    // Start warning effect when 10 seconds or less remain
+                    if (state.timeLeft <= 10 && state.timeLeft > 0) {
+                        startWarningEffect();
+                    }
+                    
                     if(state.testActive) {
                        updateStats();
                     }
@@ -517,6 +539,27 @@
                 wpmDisplay.textContent = wpm;
                 accDisplay.textContent = accuracy;
                 errorsDisplay.textContent = state.errorCount;
+            };
+
+            const startWarningEffect = () => {
+                // Only start if not already running
+                if (state.warningTimer) return;
+                
+                const body = document.body;
+                state.warningTimer = setInterval(() => {
+                    body.classList.add('timer-warning');
+                    setTimeout(() => {
+                        body.classList.remove('timer-warning');
+                    }, 500);
+                }, 1000);
+            };
+
+            const stopWarningEffect = () => {
+                if (state.warningTimer) {
+                    clearInterval(state.warningTimer);
+                    state.warningTimer = null;
+                    document.body.classList.remove('timer-warning');
+                }
             };
 
             const updateCaretPosition = () => {
@@ -541,6 +584,7 @@
                 clearInterval(state.timer);
                 state.testActive = false;
                 typingInput.blur();
+                stopWarningEffect();
 
                 const elapsedTime = state.testDuration - state.timeLeft;
                 const finalWpm = elapsedTime > 0 ? Math.round((state.correctChars / 5) / (elapsedTime / 60)) : 0;
