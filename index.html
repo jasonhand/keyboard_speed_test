@@ -35,6 +35,23 @@
             font-family: 'Inter', sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            background-image: url('https://imgix.datadoghq.com/img/products/bits-ai/bits_ai_hero_desktop.png?ch=Width,DPR,Save-Data&fm=png&auto=format&fit=max');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(17, 24, 39, 0.85); /* gray-900 with 85% opacity */
+            z-index: -1;
         }
         .caret {
             animation: blink 1s infinite;
@@ -46,11 +63,45 @@
         .correct { color: #4ade80; } /* green-400 */
         .incorrect { color: #f87171; text-decoration: underline; } /* red-400 */
         .untyped { color: #9ca3af; } /* gray-400 */
+        
+        /* Toast Animation */
+        .toast-enter {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        .toast-enter-active {
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.3s ease-out;
+        }
+        .toast-exit {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast-exit-active {
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.3s ease-in;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen p-4">
 
-    <div id="app" class="w-full max-w-4xl mx-auto">
+    <!-- Datadog Logo Accent -->
+    <div class="fixed top-8 right-8 z-5 pointer-events-none">
+        <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcompanieslogo.com%2Fimg%2Forig%2FDDOG-60ca9565.png%3Ft%3D1634120747&f=1&nofb=1&ipt=fe4e1b3b5b6e283f6f9205dbc7de1145a3d6392fb6c3dab316e6c94042e65832" 
+             alt="Datadog Logo" 
+             class="w-16 h-16 opacity-20 hover:opacity-30 transition-opacity duration-300">
+    </div>
+    
+    <!-- Datadog Logo Accent Bottom Left -->
+    <div class="fixed bottom-8 left-8 z-5 pointer-events-none">
+        <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcompanieslogo.com%2Fimg%2Forig%2FDDOG-60ca9565.png%3Ft%3D1634120747&f=1&nofb=1&ipt=fe4e1b3b5b6e283f6f9205dbc7de1145a3d6392fb6c3dab316e6c94042e65832" 
+             alt="Datadog Logo" 
+             class="w-12 h-12 opacity-10 hover:opacity-20 transition-opacity duration-300">
+    </div>
+
+    <div id="app" class="w-full max-w-4xl mx-auto relative z-10">
 
         <!-- Setup Screen -->
         <div id="setup-screen" class="text-center space-y-8">
@@ -139,6 +190,37 @@
 
     </div>
 
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-4 left-4 right-4 z-50 pointer-events-none relative">
+        <div id="bits-toast" class="hidden bg-gray-800 border border-gray-600 rounded-lg p-4 shadow-2xl max-w-md mx-auto pointer-events-auto">
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
+                        <span class="text-white text-sm font-bold">B</span>
+                    </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-white font-semibold">Bits AI</span>
+                        <span class="text-gray-400 text-sm">just now</span>
+                    </div>
+                    <p class="text-gray-300 mb-3">Great job! Would you like to start over or share your result?</p>
+                    <div class="flex space-x-2">
+                        <button id="toast-new-test" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm transition duration-200">
+                            Start Over
+                        </button>
+                        <button id="toast-share" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm transition duration-200">
+                            Share
+                        </button>
+                        <button id="toast-dismiss" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm transition duration-200">
+                            Dismiss
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM Elements ---
@@ -151,6 +233,12 @@
             const startBtn = document.getElementById('start-btn');
             const copyLeaderboardBtn = document.getElementById('copy-leaderboard-btn');
             const leaderboardContainer = document.getElementById('leaderboard-container');
+            
+            // Toast elements
+            const bitsToast = document.getElementById('bits-toast');
+            const toastNewTest = document.getElementById('toast-new-test');
+            const toastShare = document.getElementById('toast-share');
+            const toastDismiss = document.getElementById('toast-dismiss');
             
             const wpmDisplay = document.getElementById('wpm-display').querySelector('span:first-child');
             const accDisplay = document.getElementById('acc-display').querySelector('span:first-child');
@@ -281,12 +369,25 @@
                 copyLeaderboardBtn.addEventListener('click', copyLeaderboardUrl);
                 typingInput.addEventListener('input', handleTyping);
                 textPromptContainer.addEventListener('click', () => typingInput.focus());
+                
+                // Toast event listeners
+                toastNewTest.addEventListener('click', () => {
+                    hideToast();
+                    window.history.pushState({}, '', window.location.pathname);
+                    showSetupScreen();
+                });
+                toastShare.addEventListener('click', () => {
+                    hideToast();
+                    copyShareUrl();
+                });
+                toastDismiss.addEventListener('click', hideToast);
             };
 
             const showSetupScreen = () => {
                 setupScreen.classList.remove('hidden');
                 testScreen.classList.add('hidden');
                 resultsScreen.classList.add('hidden');
+                hideToast(); // Hide any existing toast
             };
 
             const showTestScreen = () => {
@@ -300,6 +401,7 @@
                 setupScreen.classList.add('hidden');
                 testScreen.classList.add('hidden');
                 resultsScreen.classList.remove('hidden');
+                hideToast(); // Hide any existing toast
             };
 
             const startTest = () => {
@@ -466,6 +568,11 @@
 
                 generateShareUrl(finalWpm, finalAccuracy);
                 showResultsScreen();
+                
+                // Show Bits AI toast after a short delay
+                setTimeout(() => {
+                    showToast();
+                }, 1000);
             };
 
             const generateShareUrl = (wpm, accuracy) => {
@@ -527,6 +634,33 @@
 
                 shareUrlInput.value = window.location.href;
                 showResultsScreen();
+            };
+
+            // --- Toast Functions ---
+            const showToast = () => {
+                bitsToast.classList.remove('hidden');
+                bitsToast.classList.add('toast-enter');
+                
+                // Trigger animation
+                setTimeout(() => {
+                    bitsToast.classList.remove('toast-enter');
+                    bitsToast.classList.add('toast-enter-active');
+                }, 10);
+                
+                // Auto-hide after 10 seconds
+                setTimeout(() => {
+                    hideToast();
+                }, 10000);
+            };
+
+            const hideToast = () => {
+                bitsToast.classList.remove('toast-enter-active');
+                bitsToast.classList.add('toast-exit');
+                
+                setTimeout(() => {
+                    bitsToast.classList.add('hidden');
+                    bitsToast.classList.remove('toast-exit');
+                }, 300);
             };
 
             // --- Leaderboard Functions ---
