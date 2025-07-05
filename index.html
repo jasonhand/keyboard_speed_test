@@ -54,16 +54,29 @@
 
         <!-- Setup Screen -->
         <div id="setup-screen" class="text-center space-y-8">
-            <h1 class="text-5xl font-bold text-white">Datadog Typing Test & Keyboard Analyze</h1>
-            <p class="text-lg text-gray-400">Test your typing speed with Datadog documentation. Compare your performance across different keyboards.</p>
+            <h1 class="text-5xl font-bold text-white">Datadog Typing Test</h1>
+            <p class="text-lg text-gray-400">Test your typing speed with Datadog documentation. Share your results and compete on the leaderboard!</p>
             <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md mx-auto space-y-4">
                 <div>
-                    <label for="keyboard-model" class="block text-sm font-medium text-gray-300 mb-2">Keyboard Model</label>
-                    <input type="text" id="keyboard-model" class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="e.g., Keychron Q1, Model M...">
+                    <label for="user-name" class="block text-sm font-medium text-gray-300 mb-2">Your Name</label>
+                    <input type="text" id="user-name" class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter your name...">
                 </div>
                 <button id="start-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
                     Start Typing Test
                 </button>
+            </div>
+            
+            <!-- Leaderboard Section -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-4xl mx-auto">
+                <h2 class="text-2xl font-bold text-white mb-4">Leaderboard</h2>
+                <div id="leaderboard-container" class="space-y-2">
+                    <div class="text-gray-400 text-sm">No results yet. Be the first to complete a test!</div>
+                </div>
+                <div class="mt-4 text-center">
+                    <button id="copy-leaderboard-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+                        Copy Leaderboard URL
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -98,8 +111,8 @@
                     <p id="result-acc" class="text-5xl font-bold">0%</p>
                 </div>
                 <div class="bg-gray-700 p-4 rounded-lg">
-                    <p class="text-gray-400 text-sm">Keyboard</p>
-                    <p id="result-keyboard" class="text-2xl font-semibold mt-3 truncate" title="Keyboard Model">N/A</p>
+                    <p class="text-gray-400 text-sm">Name</p>
+                    <p id="result-keyboard" class="text-2xl font-semibold mt-3 truncate" title="User Name">N/A</p>
                 </div>
             </div>
             <div class="mb-6">
@@ -134,8 +147,10 @@
             const testScreen = document.getElementById('test-screen');
             const resultsScreen = document.getElementById('results-screen');
 
-            const keyboardModelInput = document.getElementById('keyboard-model');
+            const userNameInput = document.getElementById('user-name');
             const startBtn = document.getElementById('start-btn');
+            const copyLeaderboardBtn = document.getElementById('copy-leaderboard-btn');
+            const leaderboardContainer = document.getElementById('leaderboard-container');
             
             const wpmDisplay = document.getElementById('wpm-display').querySelector('span:first-child');
             const accDisplay = document.getElementById('acc-display').querySelector('span:first-child');
@@ -221,7 +236,7 @@
                 typedChars: 0,
                 correctChars: 0,
                 errorCount: 0,
-                keyboardModel: 'Unknown',
+                userName: 'Unknown',
                 useDatadog: true,
                 datadogSource: null
             };
@@ -229,11 +244,19 @@
             // --- Functions ---
             const init = () => {
                 const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.has('wpm')) {
+                
+                // Check if URL contains leaderboard data
+                if (urlParams.has('lb0_wpm')) {
+                    loadLeaderboardFromURL(urlParams);
+                    showSetupScreen();
+                } else if (urlParams.has('wpm')) {
                     displayResultsFromURL(urlParams);
                 } else {
                     showSetupScreen();
                 }
+                
+                // Always update leaderboard display
+                updateLeaderboardDisplay();
                 addEventListeners();
             };
 
@@ -255,6 +278,7 @@
                     showSetupScreen();
                 });
                 copyUrlBtn.addEventListener('click', copyShareUrl);
+                copyLeaderboardBtn.addEventListener('click', copyLeaderboardUrl);
                 typingInput.addEventListener('input', handleTyping);
                 textPromptContainer.addEventListener('click', () => typingInput.focus());
             };
@@ -279,7 +303,7 @@
             };
 
             const startTest = () => {
-                state.keyboardModel = keyboardModelInput.value.trim() || 'Unknown';
+                state.userName = userNameInput.value.trim() || 'Unknown';
                 state.timeLeft = state.testDuration;
                 state.useDatadog = true;
                 timerDisplay.textContent = state.timeLeft;
@@ -287,7 +311,7 @@
                 if (window.DD_RUM && typeof window.DD_RUM.addAction === 'function') {
                     window.DD_RUM.addAction('start_test', {
                         context: {
-                            keyboardModel: state.keyboardModel,
+                            userName: state.userName,
                             testDuration: state.testDuration,
                             useDatadog: state.useDatadog
                         }
@@ -422,7 +446,7 @@
                             wpm: finalWpm,
                             accuracy: finalAccuracy,
                             errors: state.errorCount,
-                            keyboardModel: state.keyboardModel,
+                            userName: state.userName,
                             useDatadog: state.useDatadog
                         }
                     });
@@ -430,8 +454,8 @@
 
                 resultWpm.textContent = finalWpm;
                 resultAcc.textContent = `${finalAccuracy}%`;
-                resultKeyboard.textContent = state.keyboardModel;
-                resultKeyboard.title = state.keyboardModel;
+                resultKeyboard.textContent = state.userName;
+                resultKeyboard.title = state.userName;
 
                 // Always show Datadog source link since all tests use Datadog content
                 if (state.datadogSource) {
@@ -448,7 +472,7 @@
                 const params = new URLSearchParams({
                     wpm: wpm,
                     acc: accuracy,
-                    kb: state.keyboardModel,
+                    name: state.userName,
                     ts: new Date().toISOString(),
                     text: btoa(state.promptText)
                 });
@@ -463,6 +487,9 @@
                 const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
                 shareUrlInput.value = url;
                 window.history.pushState({ wpm, accuracy }, '', url);
+                
+                // Add to leaderboard
+                addToLeaderboard(wpm, accuracy, state.userName);
             };
 
             const copyShareUrl = () => {
@@ -483,9 +510,9 @@
             const displayResultsFromURL = (params) => {
                 resultWpm.textContent = params.get('wpm') || 0;
                 resultAcc.textContent = `${params.get('acc') || 100}%`;
-                const keyboard = params.get('kb') || 'Unknown';
-                resultKeyboard.textContent = keyboard;
-                resultKeyboard.title = keyboard;
+                const name = params.get('name') || 'Unknown';
+                resultKeyboard.textContent = name;
+                resultKeyboard.title = name;
 
                 // Handle Datadog source info from URL
                 if (params.get('dd') === '1') {
@@ -500,6 +527,138 @@
 
                 shareUrlInput.value = window.location.href;
                 showResultsScreen();
+            };
+
+            // --- Leaderboard Functions ---
+            const addToLeaderboard = (wpm, accuracy, name) => {
+                const leaderboard = getLeaderboard();
+                const entry = {
+                    wpm: parseInt(wpm),
+                    accuracy: parseInt(accuracy),
+                    name: name,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Add new entry
+                leaderboard.push(entry);
+                
+                // Sort by WPM (descending), then by accuracy (descending)
+                leaderboard.sort((a, b) => {
+                    if (a.wpm !== b.wpm) {
+                        return b.wpm - a.wpm;
+                    }
+                    return b.accuracy - a.accuracy;
+                });
+                
+                // Keep only top 10 entries
+                const topEntries = leaderboard.slice(0, 10);
+                
+                // Save to localStorage
+                localStorage.setItem('typing-leaderboard', JSON.stringify(topEntries));
+                
+                // Update display
+                updateLeaderboardDisplay();
+            };
+
+            const getLeaderboard = () => {
+                try {
+                    const stored = localStorage.getItem('typing-leaderboard');
+                    return stored ? JSON.parse(stored) : [];
+                } catch (e) {
+                    return [];
+                }
+            };
+
+            const updateLeaderboardDisplay = () => {
+                const leaderboard = getLeaderboard();
+                
+                if (leaderboard.length === 0) {
+                    leaderboardContainer.innerHTML = '<div class="text-gray-400 text-sm">No results yet. Be the first to complete a test!</div>';
+                    return;
+                }
+                
+                const leaderboardHTML = leaderboard.map((entry, index) => {
+                    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                    const rank = index + 1;
+                    const date = new Date(entry.timestamp).toLocaleDateString();
+                    
+                    return `
+                        <div class="flex items-center justify-between bg-gray-700 p-3 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <span class="text-lg">${medal}</span>
+                                <span class="font-bold text-white">#${rank}</span>
+                                <span class="text-white">${entry.name}</span>
+                            </div>
+                            <div class="flex items-center space-x-4 text-sm">
+                                <span class="text-green-400">${entry.wpm} WPM</span>
+                                <span class="text-blue-400">${entry.accuracy}%</span>
+                                <span class="text-gray-400">${date}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                leaderboardContainer.innerHTML = leaderboardHTML;
+            };
+
+            const copyLeaderboardUrl = () => {
+                const leaderboard = getLeaderboard();
+                if (leaderboard.length === 0) {
+                    alert('No leaderboard entries to share yet!');
+                    return;
+                }
+                
+                const params = new URLSearchParams();
+                leaderboard.forEach((entry, index) => {
+                    params.append(`lb${index}_wpm`, entry.wpm);
+                    params.append(`lb${index}_acc`, entry.accuracy);
+                    params.append(`lb${index}_name`, entry.name);
+                    params.append(`lb${index}_ts`, entry.timestamp);
+                });
+                
+                const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+                
+                try {
+                    navigator.clipboard.writeText(url).then(() => {
+                        copyLeaderboardBtn.textContent = 'Copied!';
+                        setTimeout(() => { copyLeaderboardBtn.textContent = 'Copy Leaderboard URL'; }, 2000);
+                    });
+                } catch (err) {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = url;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        copyLeaderboardBtn.textContent = 'Copied!';
+                        setTimeout(() => { copyLeaderboardBtn.textContent = 'Copy Leaderboard URL'; }, 2000);
+                    } catch (err) {
+                        alert('Failed to copy. Please copy the URL manually: ' + url);
+                    }
+                    document.body.removeChild(textArea);
+                }
+            };
+
+            const loadLeaderboardFromURL = (params) => {
+                const leaderboard = [];
+                let index = 0;
+                
+                while (params.has(`lb${index}_wpm`)) {
+                    const entry = {
+                        wpm: parseInt(params.get(`lb${index}_wpm`)),
+                        accuracy: parseInt(params.get(`lb${index}_acc`)),
+                        name: params.get(`lb${index}_name`),
+                        timestamp: params.get(`lb${index}_ts`)
+                    };
+                    leaderboard.push(entry);
+                    index++;
+                }
+                
+                if (leaderboard.length > 0) {
+                    localStorage.setItem('typing-leaderboard', JSON.stringify(leaderboard));
+                    updateLeaderboardDisplay();
+                }
             };
 
             // --- Start the App ---
