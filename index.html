@@ -46,6 +46,19 @@
         .correct { color: #4ade80; } /* green-400 */
         .incorrect { color: #f87171; text-decoration: underline; } /* red-400 */
         .untyped { color: #9ca3af; } /* gray-400 */
+        
+        /* Toggle Switch Styles */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #6366f1;
+            transform: translateX(100%);
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #6366f1;
+        }
+        .toggle-label {
+            transition: background-color 0.2s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen p-4">
@@ -68,6 +81,13 @@
                         <option value="60" selected>1 minute</option>
                         <option value="120">2 minutes</option>
                     </select>
+                </div>
+                <div class="flex items-center justify-between">
+                    <label class="text-sm font-medium text-gray-300">Use Datadog Documentation</label>
+                    <div class="relative inline-block w-12 mr-2 align-middle select-none">
+                        <input type="checkbox" id="datadog-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out"/>
+                        <label for="datadog-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                    </div>
                 </div>
                 <button id="start-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
                     Start Typing Test
@@ -114,6 +134,12 @@
                 <p class="text-gray-400 text-sm mb-2">Share Your Result</p>
                 <input type="text" id="share-url" class="w-full bg-gray-600 border border-gray-500 rounded-md px-3 py-2 text-gray-200 focus:outline-none" readonly>
             </div>
+            <div id="datadog-source" class="mb-6 hidden">
+                <p class="text-gray-400 text-sm mb-2">Text Source</p>
+                <a id="datadog-link" href="#" target="_blank" class="text-indigo-400 hover:text-indigo-300 underline break-all">
+                    View in Datadog Documentation
+                </a>
+            </div>
             <div class="flex justify-center space-x-4">
                 <button id="new-test-btn" class="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md transition duration-300">New Test</button>
                 <button id="copy-url-btn" class="w-1/2 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-md transition duration-300">Copy URL</button>
@@ -133,6 +159,7 @@
             const keyboardModelInput = document.getElementById('keyboard-model');
             const testDurationSelect = document.getElementById('test-duration');
             const startBtn = document.getElementById('start-btn');
+            const datadogToggle = document.getElementById('datadog-toggle');
             
             const wpmDisplay = document.getElementById('wpm-display').querySelector('span:first-child');
             const accDisplay = document.getElementById('acc-display').querySelector('span:first-child');
@@ -151,6 +178,8 @@
             const shareUrlInput = document.getElementById('share-url');
             const newTestBtn = document.getElementById('new-test-btn');
             const copyUrlBtn = document.getElementById('copy-url-btn');
+            const datadogSource = document.getElementById('datadog-source');
+            const datadogLink = document.getElementById('datadog-link');
 
             // --- Text Samples ---
             const textSamples = [
@@ -165,6 +194,60 @@
                 "The majestic mountains stood tall against the clear blue sky. Their snow-capped peaks glistened in the sunlight, a breathtaking sight to behold."
             ];
 
+            // --- Datadog Documentation Snippets ---
+            const datadogSnippets = [
+                {
+                    text: "Datadog is a monitoring and analytics platform for IT infrastructure, cloud services, and applications. It provides real-time visibility into your entire technology stack.",
+                    source: "https://docs.datadoghq.com/getting_started/",
+                    title: "Getting Started"
+                },
+                {
+                    text: "The Datadog Agent is a lightweight daemon that runs on your hosts and collects events and metrics from hosts and sends them to Datadog, where you can analyze your monitoring and performance data.",
+                    source: "https://docs.datadoghq.com/agent/",
+                    title: "Datadog Agent"
+                },
+                {
+                    text: "APM (Application Performance Monitoring) provides deep visibility into your application's performance by tracing requests as they flow through your services and infrastructure.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "APM & Distributed Tracing"
+                },
+                {
+                    text: "Logs provide visibility into the behavior of your applications and infrastructure. They help you understand how your applications are performing and troubleshoot issues.",
+                    source: "https://docs.datadoghq.com/logs/",
+                    title: "Log Management"
+                },
+                {
+                    text: "Infrastructure monitoring gives you visibility into your hosts, containers, and cloud services. Monitor your infrastructure in real-time and get alerted when issues arise.",
+                    source: "https://docs.datadoghq.com/infrastructure/",
+                    title: "Infrastructure Monitoring"
+                },
+                {
+                    text: "Real User Monitoring (RUM) enables you to visualize and analyze the real-time performance and user journeys of your application's individual users.",
+                    source: "https://docs.datadoghq.com/real_user_monitoring/",
+                    title: "Real User Monitoring"
+                },
+                {
+                    text: "Synthetic monitoring allows you to create automated tests that simulate user requests and actions to ensure your applications are working correctly from the user's perspective.",
+                    source: "https://docs.datadoghq.com/synthetics/",
+                    title: "Synthetic Monitoring"
+                },
+                {
+                    text: "Security monitoring helps you detect threats and vulnerabilities in your infrastructure and applications. Monitor for security events and get alerted when potential threats are detected.",
+                    source: "https://docs.datadoghq.com/security_platform/",
+                    title: "Security Platform"
+                },
+                {
+                    text: "Dashboards provide a customizable view of your metrics, logs, and traces. Create visualizations to monitor your infrastructure and applications in real-time.",
+                    source: "https://docs.datadoghq.com/dashboards/",
+                    title: "Dashboards"
+                },
+                {
+                    text: "Alerts notify you when your metrics exceed certain thresholds. Configure alerting rules to ensure you're notified of issues before they impact your users.",
+                    source: "https://docs.datadoghq.com/monitors/",
+                    title: "Monitors"
+                }
+            ];
+
             // --- App State ---
             let state = {
                 testDuration: 60,
@@ -175,7 +258,9 @@
                 typedChars: 0,
                 correctChars: 0,
                 errorCount: 0,
-                keyboardModel: 'Unknown'
+                keyboardModel: 'Unknown',
+                useDatadog: false,
+                datadogSource: null
             };
 
             // --- Functions ---
@@ -234,13 +319,15 @@
                 state.keyboardModel = keyboardModelInput.value.trim() || 'Unknown';
                 state.testDuration = parseInt(testDurationSelect.value, 10);
                 state.timeLeft = state.testDuration;
+                state.useDatadog = datadogToggle.checked;
                 timerDisplay.textContent = state.timeLeft;
                 
                 if (window.DD_RUM && typeof window.DD_RUM.addAction === 'function') {
                     window.DD_RUM.addAction('start_test', {
                         context: {
                             keyboardModel: state.keyboardModel,
-                            testDuration: state.testDuration
+                            testDuration: state.testDuration,
+                            useDatadog: state.useDatadog
                         }
                     });
                 }
@@ -272,7 +359,14 @@
             };
 
             const setNewPrompt = () => {
-                state.promptText = textSamples[Math.floor(Math.random() * textSamples.length)];
+                if (state.useDatadog) {
+                    const randomSnippet = datadogSnippets[Math.floor(Math.random() * datadogSnippets.length)];
+                    state.promptText = randomSnippet.text;
+                    state.datadogSource = randomSnippet;
+                } else {
+                    state.promptText = textSamples[Math.floor(Math.random() * textSamples.length)];
+                    state.datadogSource = null;
+                }
                 textPrompt.innerHTML = state.promptText.split('').map(char => `<span class="untyped">${char}</span>`).join('');
                 updateCaretPosition();
             };
@@ -371,7 +465,8 @@
                             wpm: finalWpm,
                             accuracy: finalAccuracy,
                             errors: state.errorCount,
-                            keyboardModel: state.keyboardModel
+                            keyboardModel: state.keyboardModel,
+                            useDatadog: state.useDatadog
                         }
                     });
                 }
@@ -380,6 +475,15 @@
                 resultAcc.textContent = `${finalAccuracy}%`;
                 resultKeyboard.textContent = state.keyboardModel;
                 resultKeyboard.title = state.keyboardModel;
+
+                // Show/hide Datadog source link
+                if (state.useDatadog && state.datadogSource) {
+                    datadogLink.href = state.datadogSource.source;
+                    datadogLink.textContent = `${state.datadogSource.title} - Datadog Documentation`;
+                    datadogSource.classList.remove('hidden');
+                } else {
+                    datadogSource.classList.add('hidden');
+                }
 
                 generateShareUrl(finalWpm, finalAccuracy);
                 showResultsScreen();
@@ -393,6 +497,14 @@
                     ts: new Date().toISOString(),
                     text: btoa(state.promptText)
                 });
+                
+                // Add Datadog source info if used
+                if (state.useDatadog && state.datadogSource) {
+                    params.append('dd', '1');
+                    params.append('dd_title', state.datadogSource.title);
+                    params.append('dd_source', state.datadogSource.source);
+                }
+                
                 const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
                 shareUrlInput.value = url;
                 window.history.pushState({ wpm, accuracy }, '', url);
@@ -419,6 +531,17 @@
                 const keyboard = params.get('kb') || 'Unknown';
                 resultKeyboard.textContent = keyboard;
                 resultKeyboard.title = keyboard;
+
+                // Handle Datadog source info from URL
+                if (params.get('dd') === '1') {
+                    const ddTitle = params.get('dd_title') || 'Datadog Documentation';
+                    const ddSource = params.get('dd_source') || 'https://docs.datadoghq.com/';
+                    datadogLink.href = ddSource;
+                    datadogLink.textContent = `${ddTitle} - Datadog Documentation`;
+                    datadogSource.classList.remove('hidden');
+                } else {
+                    datadogSource.classList.add('hidden');
+                }
 
                 shareUrlInput.value = window.location.href;
                 showResultsScreen();
