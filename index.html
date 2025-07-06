@@ -89,12 +89,16 @@
             animation: flashRed 1s ease-in-out;
         }
         
+        .timer-warning::before {
+            background: rgba(239, 68, 68, 0.8) !important; /* solid red background */
+        }
+        
         @keyframes flashRed {
             0%, 100% { 
                 background-color: rgba(17, 24, 39, 0.85); /* normal background */
             }
             50% { 
-                background-color: rgba(239, 68, 68, 0.3); /* red flash */
+                background-color: rgba(239, 68, 68, 0.8); /* solid red flash */
             }
         }
     </style>
@@ -151,13 +155,21 @@
                 <div id="wpm-display" class="bg-gray-800 p-4 rounded-lg"><span class="text-4xl font-bold">0</span><span class="text-gray-400"> WPM</span></div>
                 <div id="acc-display" class="bg-gray-800 p-4 rounded-lg"><span class="text-4xl font-bold">100</span><span class="text-gray-400">% Acc</span></div>
                 <div id="errors-display" class="bg-gray-800 p-4 rounded-lg"><span class="text-4xl font-bold">0</span><span class="text-gray-400"> Errors</span></div>
-                <div id="timer-display" class="bg-gray-800 p-4 rounded-lg"><span class="text-4xl font-bold">30</span><span class="text-gray-400">s</span></div>
+                <div id="timer-display" class="bg-gray-800 p-4 rounded-lg"><span class="text-4xl font-bold text-white">30</span><span class="text-gray-400">s</span></div>
             </div>
             <div id="text-prompt-container" class="relative bg-gray-800 p-6 rounded-lg text-2xl leading-relaxed font-mono tracking-wider mb-4" style="min-height: 160px;">
                 <p id="text-prompt"></p>
                 <div id="caret" class="caret absolute bg-indigo-500" style="width: 2px; height: 2rem; top: 1.5rem; left: 1.5rem;"></div>
             </div>
             <input type="text" id="typing-input" class="opacity-0 absolute" autofocus>
+            
+            <!-- Prominent Countdown Timer -->
+            <div id="countdown-overlay" class="fixed inset-0 flex items-center justify-center z-40 pointer-events-none">
+                <div id="countdown-display" class="text-8xl font-bold text-white bg-black bg-opacity-50 rounded-full w-48 h-48 flex items-center justify-center hidden">
+                    <span id="countdown-number">30</span>
+                </div>
+            </div>
+            
             <div class="text-center">
                 <button id="restart-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-md transition duration-300">Restart</button>
             </div>
@@ -205,8 +217,8 @@
     </div>
 
     <!-- Toast Container -->
-    <div id="toast-container" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none relative">
-        <div id="bits-toast" class="hidden bg-gray-800 border border-gray-600 rounded-lg p-4 shadow-2xl max-w-md pointer-events-auto">
+    <div id="toast-container" class="fixed bottom-4 left-4 right-4 z-50 pointer-events-none">
+        <div id="bits-toast" class="hidden bg-gray-800 border border-gray-600 rounded-lg p-4 shadow-2xl max-w-md mx-auto pointer-events-auto">
             <div class="flex items-start space-x-3">
                 <div class="flex-shrink-0">
                     <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcompanieslogo.com%2Fimg%2Forig%2FDDOG-60ca9565.png%3Ft%3D1634120747&f=1&nofb=1&ipt=fe4e1b3b5b6e283f6f9205dbc7de1145a3d6392fb6c3dab316e6c94042e65832" 
@@ -258,6 +270,8 @@
             const accDisplay = document.getElementById('acc-display').querySelector('span:first-child');
             const errorsDisplay = document.getElementById('errors-display').querySelector('span:first-child');
             const timerDisplay = document.getElementById('timer-display').querySelector('span:first-child');
+            const countdownDisplay = document.getElementById('countdown-display');
+            const countdownNumber = document.getElementById('countdown-number');
             
             const textPromptContainer = document.getElementById('text-prompt-container');
             const textPrompt = document.getElementById('text-prompt');
@@ -326,6 +340,636 @@
                     text: "Alerts notify you when your metrics exceed certain thresholds. Configure alerting rules to ensure you're notified of issues before they impact your users.",
                     source: "https://docs.datadoghq.com/monitors/",
                     title: "Monitors"
+                },
+                {
+                    text: "The Datadog Agent can collect metrics from over 400 integrations, including databases, web servers, cloud services, and custom applications.",
+                    source: "https://docs.datadoghq.com/agent/",
+                    title: "Agent Integrations"
+                },
+                {
+                    text: "Distributed tracing allows you to track requests as they flow through your microservices architecture, helping you identify bottlenecks and performance issues.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Distributed Tracing"
+                },
+                {
+                    text: "Log aggregation in Datadog enables you to search, filter, and analyze logs from all your applications and infrastructure in one centralized location.",
+                    source: "https://docs.datadoghq.com/logs/",
+                    title: "Log Aggregation"
+                },
+                {
+                    text: "Container monitoring provides visibility into your Docker containers, Kubernetes clusters, and containerized applications with automatic service discovery.",
+                    source: "https://docs.datadoghq.com/containers/",
+                    title: "Container Monitoring"
+                },
+                {
+                    text: "Cloud monitoring supports AWS, Azure, Google Cloud Platform, and other cloud providers with native integration and automatic resource discovery.",
+                    source: "https://docs.datadoghq.com/integrations/",
+                    title: "Cloud Monitoring"
+                },
+                {
+                    text: "Custom metrics allow you to track business-specific KPIs and application metrics that are unique to your organization and use cases.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Custom Metrics"
+                },
+                {
+                    text: "Service Level Objectives (SLOs) help you define and track the reliability of your services based on business-critical metrics and user experience.",
+                    source: "https://docs.datadoghq.com/monitors/service_level_objectives/",
+                    title: "Service Level Objectives"
+                },
+                {
+                    text: "Network Performance Monitoring provides visibility into network traffic, latency, and connectivity issues across your infrastructure and cloud services.",
+                    source: "https://docs.datadoghq.com/network_performance_monitoring/",
+                    title: "Network Performance Monitoring"
+                },
+                {
+                    text: "Database monitoring tracks performance metrics, query execution times, and connection pools for popular databases like PostgreSQL, MySQL, and MongoDB.",
+                    source: "https://docs.datadoghq.com/integrations/",
+                    title: "Database Monitoring"
+                },
+                {
+                    text: "Error tracking automatically captures and aggregates application errors, providing stack traces and context to help you debug issues quickly.",
+                    source: "https://docs.datadoghq.com/real_user_monitoring/error_tracking/",
+                    title: "Error Tracking"
+                },
+                {
+                    text: "Profiling helps you identify performance bottlenecks in your code by analyzing CPU usage, memory allocation, and function execution times.",
+                    source: "https://docs.datadoghq.com/profiler/",
+                    title: "Continuous Profiler"
+                },
+                {
+                    text: "Incident management enables teams to collaborate effectively during outages with automated alerting, escalation policies, and post-incident analysis.",
+                    source: "https://docs.datadoghq.com/monitors/incident_management/",
+                    title: "Incident Management"
+                },
+                {
+                    text: "Metric correlation automatically identifies relationships between different metrics, helping you understand the root cause of performance issues.",
+                    source: "https://docs.datadoghq.com/monitors/",
+                    title: "Metric Correlation"
+                },
+                {
+                    text: "Log-based metrics allow you to create metrics from log data, enabling you to track business events and application behavior over time.",
+                    source: "https://docs.datadoghq.com/logs/logs_to_metrics/",
+                    title: "Log-based Metrics"
+                },
+                {
+                    text: "Trace sampling helps you control costs while maintaining visibility by sampling a percentage of distributed traces based on your configuration.",
+                    source: "https://docs.datadoghq.com/tracing/trace_sampling_and_storage/",
+                    title: "Trace Sampling"
+                },
+                {
+                    text: "Custom dashboards can be shared with stakeholders and embedded in other applications to provide real-time visibility into your systems.",
+                    source: "https://docs.datadoghq.com/dashboards/",
+                    title: "Dashboard Sharing"
+                },
+                {
+                    text: "Multi-region deployment monitoring allows you to track the performance and availability of your applications across different geographic regions.",
+                    source: "https://docs.datadoghq.com/agent/",
+                    title: "Multi-region Monitoring"
+                },
+                {
+                    text: "Service dependencies automatically map the relationships between your services, helping you understand the impact of failures and changes.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Service Dependencies"
+                },
+                {
+                    text: "Anomaly detection uses machine learning to identify unusual patterns in your metrics, helping you detect issues before they impact users.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/anomaly/",
+                    title: "Anomaly Detection"
+                },
+                {
+                    text: "Forecast monitors predict future metric values based on historical data, helping you plan capacity and identify potential issues.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/forecasts/",
+                    title: "Forecast Monitoring"
+                },
+                {
+                    text: "Composite monitors combine multiple conditions to create complex alerting scenarios that better reflect your application's health.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/composite/",
+                    title: "Composite Monitors"
+                },
+                {
+                    text: "Metric metadata allows you to add custom tags and descriptions to your metrics, making them easier to organize and understand.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Metric Metadata"
+                },
+                {
+                    text: "Log parsing uses regular expressions to extract structured data from log messages, enabling better search and analysis capabilities.",
+                    source: "https://docs.datadoghq.com/logs/log_configuration/parsing/",
+                    title: "Log Parsing"
+                },
+                {
+                    text: "Trace analytics enables you to search and filter distributed traces based on tags, helping you identify patterns and troubleshoot issues.",
+                    source: "https://docs.datadoghq.com/tracing/trace_explorer/",
+                    title: "Trace Analytics"
+                },
+                {
+                    text: "Host maps provide a visual representation of your infrastructure, showing the relationships and health status of your hosts and services.",
+                    source: "https://docs.datadoghq.com/infrastructure/hostmap/",
+                    title: "Host Maps"
+                },
+                {
+                    text: "Process monitoring tracks individual processes running on your hosts, providing visibility into resource usage and performance metrics.",
+                    source: "https://docs.datadoghq.com/infrastructure/process/",
+                    title: "Process Monitoring"
+                },
+                {
+                    text: "Custom widgets allow you to create specialized visualizations for your dashboards, including custom HTML, iframes, and third-party integrations.",
+                    source: "https://docs.datadoghq.com/dashboards/widgets/",
+                    title: "Custom Widgets"
+                },
+                {
+                    text: "Metric alerts can be configured with different thresholds for different time periods, enabling more sophisticated monitoring strategies.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/metric/",
+                    title: "Metric Alerts"
+                },
+                {
+                    text: "Log retention policies allow you to control how long logs are stored, helping you manage costs while maintaining compliance requirements.",
+                    source: "https://docs.datadoghq.com/logs/archives/",
+                    title: "Log Retention"
+                },
+                {
+                    text: "Service level indicators (SLIs) measure the reliability and performance of your services from the user's perspective.",
+                    source: "https://docs.datadoghq.com/monitors/service_level_objectives/",
+                    title: "Service Level Indicators"
+                },
+                {
+                    text: "Trace injection allows you to add custom context to your distributed traces, helping you correlate business events with technical performance.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Trace Injection"
+                },
+                {
+                    text: "Metric aggregation functions enable you to combine multiple metrics into meaningful business KPIs and performance indicators.",
+                    source: "https://docs.datadoghq.com/dashboards/querying/",
+                    title: "Metric Aggregation"
+                },
+                {
+                    text: "Log-based alerts can trigger notifications based on log content, enabling you to respond quickly to application errors and security events.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/log/",
+                    title: "Log-based Alerts"
+                },
+                {
+                    text: "APM traces automatically capture database queries, external API calls, and cache operations to provide comprehensive performance visibility.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "APM Traces"
+                },
+                {
+                    text: "Infrastructure as Code monitoring allows you to track changes to your infrastructure and correlate them with performance impacts.",
+                    source: "https://docs.datadoghq.com/infrastructure/",
+                    title: "Infrastructure as Code"
+                },
+                {
+                    text: "Custom log pipelines enable you to transform, enrich, and route log data based on your specific requirements and use cases.",
+                    source: "https://docs.datadoghq.com/logs/log_configuration/pipelines/",
+                    title: "Custom Log Pipelines"
+                },
+                {
+                    text: "Metric correlation analysis automatically identifies relationships between different metrics, helping you understand system dependencies.",
+                    source: "https://docs.datadoghq.com/monitors/",
+                    title: "Metric Correlation Analysis"
+                },
+                {
+                    text: "Service mesh monitoring provides visibility into communication between microservices, helping you optimize performance and reliability.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Service Mesh Monitoring"
+                },
+                {
+                    text: "Log-based metrics can be used to create business KPIs, such as user sign-ups, order completions, and feature usage patterns.",
+                    source: "https://docs.datadoghq.com/logs/logs_to_metrics/",
+                    title: "Business KPIs"
+                },
+                {
+                    text: "Distributed tracing automatically instruments popular frameworks and libraries, providing out-of-the-box visibility into application performance.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Auto-instrumentation"
+                },
+                {
+                    text: "Metric forecasting uses machine learning to predict future values, helping you plan capacity and identify potential issues before they occur.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/forecasts/",
+                    title: "Metric Forecasting"
+                },
+                {
+                    text: "Log correlation automatically links logs with traces and metrics, providing context for troubleshooting and performance analysis.",
+                    source: "https://docs.datadoghq.com/logs/",
+                    title: "Log Correlation"
+                },
+                {
+                    text: "Custom metric submission allows you to send business metrics and application-specific data directly to Datadog from your code.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Custom Metric Submission"
+                },
+                {
+                    text: "Service level agreements (SLAs) can be tracked using SLOs, ensuring your applications meet the performance expectations of your users.",
+                    source: "https://docs.datadoghq.com/monitors/service_level_objectives/",
+                    title: "Service Level Agreements"
+                },
+                {
+                    text: "Trace sampling strategies can be configured to capture different percentages of traces based on service, error rates, or custom criteria.",
+                    source: "https://docs.datadoghq.com/tracing/trace_sampling_and_storage/",
+                    title: "Trace Sampling Strategies"
+                },
+                {
+                    text: "Log enrichment automatically adds context to your logs, including host information, service tags, and custom metadata.",
+                    source: "https://docs.datadoghq.com/logs/log_configuration/attributes_naming_convention/",
+                    title: "Log Enrichment"
+                },
+                {
+                    text: "Metric rollup functions enable you to aggregate data over different time periods, helping you analyze trends and patterns in your metrics.",
+                    source: "https://docs.datadoghq.com/dashboards/querying/",
+                    title: "Metric Rollup"
+                },
+                {
+                    text: "APM flame graphs provide a visual representation of CPU usage, helping you identify performance bottlenecks in your application code.",
+                    source: "https://docs.datadoghq.com/profiler/",
+                    title: "Flame Graphs"
+                },
+                {
+                    text: "Custom alert conditions allow you to create complex monitoring rules that better reflect the health and performance of your applications.",
+                    source: "https://docs.datadoghq.com/monitors/create/",
+                    title: "Custom Alert Conditions"
+                },
+                {
+                    text: "Log-based service discovery automatically identifies services from your log data, enabling better organization and monitoring.",
+                    source: "https://docs.datadoghq.com/logs/",
+                    title: "Log-based Service Discovery"
+                },
+                {
+                    text: "Metric metadata management allows you to add descriptions, units, and tags to your metrics, making them more discoverable and understandable.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Metric Metadata Management"
+                },
+                {
+                    text: "Trace-based service maps automatically generate visual representations of your service architecture based on distributed tracing data.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Service Maps"
+                },
+                {
+                    text: "Log retention and archival policies help you manage storage costs while maintaining compliance with data retention requirements.",
+                    source: "https://docs.datadoghq.com/logs/archives/",
+                    title: "Log Retention Policies"
+                },
+                {
+                    text: "Custom metric aggregation enables you to create business-specific KPIs by combining multiple metrics and applying custom calculations.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Custom Metric Aggregation"
+                },
+                {
+                    text: "APM dependency tracking automatically maps the relationships between your services, helping you understand the impact of changes and failures.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Dependency Tracking"
+                },
+                {
+                    text: "Metric anomaly detection uses statistical analysis to identify unusual patterns in your data, helping you detect issues before they impact users.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/anomaly/",
+                    title: "Anomaly Detection"
+                },
+                {
+                    text: "Log-based alerting can trigger notifications based on log volume, error rates, or specific log content patterns.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/log/",
+                    title: "Log-based Alerting"
+                },
+                {
+                    text: "Custom dashboard templates allow you to create reusable dashboard configurations that can be applied across different environments and services.",
+                    source: "https://docs.datadoghq.com/dashboards/",
+                    title: "Dashboard Templates"
+                },
+                {
+                    text: "Trace-based performance analysis provides detailed insights into request latency, database queries, and external service calls.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Performance Analysis"
+                },
+                {
+                    text: "Metric correlation analysis automatically identifies relationships between different metrics, helping you understand system dependencies and root causes.",
+                    source: "https://docs.datadoghq.com/monitors/",
+                    title: "Correlation Analysis"
+                },
+                {
+                    text: "Log parsing and enrichment automatically extracts structured data from log messages, enabling better search, filtering, and analysis capabilities.",
+                    source: "https://docs.datadoghq.com/logs/log_configuration/parsing/",
+                    title: "Log Parsing and Enrichment"
+                },
+                {
+                    text: "Custom metric submission APIs allow you to send business metrics and application-specific data directly to Datadog from your applications.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Metric Submission APIs"
+                },
+                {
+                    text: "Service level objective tracking enables you to measure and improve the reliability and performance of your services based on business-critical metrics.",
+                    source: "https://docs.datadoghq.com/monitors/service_level_objectives/",
+                    title: "SLO Tracking"
+                },
+                {
+                    text: "Distributed tracing automatically instruments popular web frameworks, databases, and messaging systems to provide comprehensive visibility.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Auto-instrumentation"
+                },
+                {
+                    text: "Metric forecasting and trend analysis help you predict future resource needs and identify potential performance issues before they impact users.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/forecasts/",
+                    title: "Forecasting and Trends"
+                },
+                {
+                    text: "Log correlation and analysis automatically links logs with traces and metrics, providing comprehensive context for troubleshooting and performance analysis.",
+                    source: "https://docs.datadoghq.com/logs/",
+                    title: "Log Correlation and Analysis"
+                },
+                {
+                    text: "Custom dashboard widgets enable you to create specialized visualizations and integrate third-party tools and data sources into your monitoring dashboards.",
+                    source: "https://docs.datadoghq.com/dashboards/widgets/",
+                    title: "Custom Widgets"
+                },
+                {
+                    text: "APM flame graphs and profiling provide detailed insights into CPU usage, memory allocation, and function execution times to help optimize application performance.",
+                    source: "https://docs.datadoghq.com/profiler/",
+                    title: "Flame Graphs and Profiling"
+                },
+                {
+                    text: "Metric rollup and aggregation functions enable you to analyze trends and patterns in your data across different time periods and dimensions.",
+                    source: "https://docs.datadoghq.com/dashboards/querying/",
+                    title: "Metric Rollup and Aggregation"
+                },
+                {
+                    text: "Service mesh monitoring provides visibility into communication patterns between microservices, helping you optimize performance and identify bottlenecks.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Service Mesh Monitoring"
+                },
+                {
+                    text: "Log-based service discovery and monitoring automatically identifies services from your log data and provides comprehensive visibility into their performance.",
+                    source: "https://docs.datadoghq.com/logs/",
+                    title: "Service Discovery"
+                },
+                {
+                    text: "Custom metric metadata management allows you to add descriptions, units, tags, and other metadata to your metrics for better organization and understanding.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Metric Metadata Management"
+                },
+                {
+                    text: "Trace-based service dependency mapping automatically generates visual representations of your service architecture and dependencies based on distributed tracing data.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Service Dependencies"
+                },
+                {
+                    text: "Log retention and archival policies help you manage storage costs while maintaining compliance with data retention requirements and audit trails.",
+                    source: "https://docs.datadoghq.com/logs/archives/",
+                    title: "Log Retention and Archival"
+                },
+                {
+                    text: "Custom metric aggregation and calculation functions enable you to create business-specific KPIs and performance indicators by combining multiple metrics.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Custom Metric Aggregation"
+                },
+                {
+                    text: "APM dependency tracking and analysis automatically maps the relationships between your services and helps you understand the impact of changes and failures.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Dependency Analysis"
+                },
+                {
+                    text: "Metric anomaly detection and alerting uses statistical analysis and machine learning to identify unusual patterns and trigger proactive notifications.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/anomaly/",
+                    title: "Anomaly Detection and Alerting"
+                },
+                {
+                    text: "Log-based alerting and monitoring can trigger notifications based on log volume, error rates, specific content patterns, and business events.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/log/",
+                    title: "Log-based Monitoring"
+                },
+                {
+                    text: "Custom dashboard templates and sharing capabilities allow you to create reusable dashboard configurations and share them across teams and environments.",
+                    source: "https://docs.datadoghq.com/dashboards/",
+                    title: "Dashboard Templates and Sharing"
+                },
+                {
+                    text: "Trace-based performance analysis and optimization provides detailed insights into request latency, database queries, and external service calls to help improve application performance.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Performance Analysis and Optimization"
+                },
+                {
+                    text: "Metric correlation analysis and visualization automatically identifies relationships between different metrics and helps you understand system dependencies and root causes.",
+                    source: "https://docs.datadoghq.com/monitors/",
+                    title: "Correlation Analysis and Visualization"
+                },
+                {
+                    text: "Log parsing, enrichment, and analysis automatically extracts structured data from log messages and enables comprehensive search, filtering, and analysis capabilities.",
+                    source: "https://docs.datadoghq.com/logs/log_configuration/parsing/",
+                    title: "Log Parsing and Analysis"
+                },
+                {
+                    text: "Custom metric submission APIs and SDKs allow you to send business metrics and application-specific data directly to Datadog from your applications and services.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Metric Submission APIs and SDKs"
+                },
+                {
+                    text: "Service level objective tracking and reporting enables you to measure, monitor, and improve the reliability and performance of your services based on business-critical metrics.",
+                    source: "https://docs.datadoghq.com/monitors/service_level_objectives/",
+                    title: "SLO Tracking and Reporting"
+                },
+                {
+                    text: "Distributed tracing and auto-instrumentation automatically instruments popular web frameworks, databases, and messaging systems to provide comprehensive application visibility.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Distributed Tracing and Auto-instrumentation"
+                },
+                {
+                    text: "Metric forecasting, trend analysis, and capacity planning help you predict future resource needs and identify potential performance issues before they impact users.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/forecasts/",
+                    title: "Forecasting and Capacity Planning"
+                },
+                {
+                    text: "Log correlation, analysis, and troubleshooting automatically links logs with traces and metrics to provide comprehensive context for debugging and performance optimization.",
+                    source: "https://docs.datadoghq.com/logs/",
+                    title: "Log Correlation and Troubleshooting"
+                },
+                {
+                    text: "Custom dashboard widgets and integrations enable you to create specialized visualizations and integrate third-party tools and data sources into your monitoring environment.",
+                    source: "https://docs.datadoghq.com/dashboards/widgets/",
+                    title: "Custom Widgets and Integrations"
+                },
+                {
+                    text: "APM flame graphs, profiling, and performance optimization provide detailed insights into CPU usage, memory allocation, and function execution times.",
+                    source: "https://docs.datadoghq.com/profiler/",
+                    title: "APM Profiling and Optimization"
+                },
+                {
+                    text: "Metric rollup, aggregation, and analysis functions enable you to analyze trends, patterns, and anomalies in your data across different time periods and dimensions.",
+                    source: "https://docs.datadoghq.com/dashboards/querying/",
+                    title: "Metric Analysis and Aggregation"
+                },
+                {
+                    text: "Service mesh monitoring and optimization provides visibility into communication patterns between microservices and helps you identify and resolve performance bottlenecks.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Service Mesh Optimization"
+                },
+                {
+                    text: "Log-based service discovery, monitoring, and alerting automatically identifies services from your log data and provides comprehensive visibility and notification capabilities.",
+                    source: "https://docs.datadoghq.com/logs/",
+                    title: "Service Discovery and Monitoring"
+                },
+                {
+                    text: "Custom metric metadata management and organization allows you to add descriptions, units, tags, and other metadata to your metrics for better discoverability and understanding.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Metric Organization and Management"
+                },
+                {
+                    text: "Trace-based service dependency mapping and visualization automatically generates comprehensive representations of your service architecture and dependencies.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Service Dependency Visualization"
+                },
+                {
+                    text: "Log retention, archival, and compliance policies help you manage storage costs while maintaining compliance with data retention requirements and audit trail standards.",
+                    source: "https://docs.datadoghq.com/logs/archives/",
+                    title: "Log Retention and Compliance"
+                },
+                {
+                    text: "Custom metric aggregation, calculation, and business intelligence functions enable you to create sophisticated KPIs and performance indicators for your organization.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Business Intelligence and KPIs"
+                },
+                {
+                    text: "APM dependency tracking, analysis, and impact assessment automatically maps service relationships and helps you understand the cascading effects of changes and failures.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Dependency Impact Assessment"
+                },
+                {
+                    text: "Metric anomaly detection, alerting, and machine learning uses advanced statistical analysis to identify unusual patterns and trigger proactive notifications for potential issues.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/anomaly/",
+                    title: "Machine Learning Anomaly Detection"
+                },
+                {
+                    text: "Log-based alerting, monitoring, and business event tracking can trigger notifications based on log volume, error rates, content patterns, and business-critical events.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/log/",
+                    title: "Business Event Monitoring"
+                },
+                {
+                    text: "Custom dashboard templates, sharing, and collaboration capabilities allow you to create reusable dashboard configurations and share them across teams, environments, and stakeholders.",
+                    source: "https://docs.datadoghq.com/dashboards/",
+                    title: "Dashboard Collaboration"
+                },
+                {
+                    text: "Trace-based performance analysis, optimization, and capacity planning provides detailed insights into request latency, database queries, and external service calls for strategic planning.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Performance Planning and Optimization"
+                },
+                {
+                    text: "Metric correlation analysis, visualization, and root cause investigation automatically identifies relationships between different metrics and helps you understand system dependencies.",
+                    source: "https://docs.datadoghq.com/monitors/",
+                    title: "Root Cause Investigation"
+                },
+                {
+                    text: "Log parsing, enrichment, analysis, and business intelligence automatically extracts structured data from log messages and enables comprehensive business insights and operational intelligence.",
+                    source: "https://docs.datadoghq.com/logs/log_configuration/parsing/",
+                    title: "Operational Intelligence"
+                },
+                {
+                    text: "Custom metric submission APIs, SDKs, and integration frameworks allow you to send business metrics and application-specific data directly to Datadog from any application or service.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Comprehensive Metric Integration"
+                },
+                {
+                    text: "Service level objective tracking, reporting, and business impact analysis enables you to measure, monitor, and improve service reliability based on business-critical metrics and user experience.",
+                    source: "https://docs.datadoghq.com/monitors/service_level_objectives/",
+                    title: "Business Impact Analysis"
+                },
+                {
+                    text: "Distributed tracing, auto-instrumentation, and comprehensive application visibility automatically instruments popular frameworks and provides end-to-end request tracking across your entire technology stack.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "End-to-End Application Visibility"
+                },
+                {
+                    text: "Metric forecasting, trend analysis, capacity planning, and predictive analytics help you predict future resource needs and identify potential performance issues before they impact users and business operations.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/forecasts/",
+                    title: "Predictive Analytics and Planning"
+                },
+                {
+                    text: "Log correlation, analysis, troubleshooting, and operational intelligence automatically links logs with traces and metrics to provide comprehensive context for debugging, performance optimization, and business insights.",
+                    source: "https://docs.datadoghq.com/logs/",
+                    title: "Comprehensive Operational Intelligence"
+                },
+                {
+                    text: "Custom dashboard widgets, integrations, and visualization capabilities enable you to create specialized visualizations and integrate third-party tools and data sources into your unified monitoring environment.",
+                    source: "https://docs.datadoghq.com/dashboards/widgets/",
+                    title: "Unified Monitoring Environment"
+                },
+                {
+                    text: "APM flame graphs, profiling, performance optimization, and code-level insights provide detailed visibility into CPU usage, memory allocation, and function execution times for comprehensive application optimization.",
+                    source: "https://docs.datadoghq.com/profiler/",
+                    title: "Code-Level Performance Insights"
+                },
+                {
+                    text: "Metric rollup, aggregation, analysis, and business intelligence functions enable you to analyze trends, patterns, anomalies, and business KPIs across different time periods and organizational dimensions.",
+                    source: "https://docs.datadoghq.com/dashboards/querying/",
+                    title: "Business Intelligence and Analytics"
+                },
+                {
+                    text: "Service mesh monitoring, optimization, and traffic analysis provides comprehensive visibility into communication patterns between microservices and helps you identify, resolve, and prevent performance bottlenecks.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Service Mesh Traffic Analysis"
+                },
+                {
+                    text: "Log-based service discovery, monitoring, alerting, and operational visibility automatically identifies services from your log data and provides comprehensive monitoring and notification capabilities for your entire infrastructure.",
+                    source: "https://docs.datadoghq.com/logs/",
+                    title: "Comprehensive Service Visibility"
+                },
+                {
+                    text: "Custom metric metadata management, organization, and governance allows you to add descriptions, units, tags, and other metadata to your metrics for better discoverability, understanding, and compliance across your organization.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Metric Governance and Organization"
+                },
+                {
+                    text: "Trace-based service dependency mapping, visualization, and impact analysis automatically generates comprehensive representations of your service architecture and helps you understand the cascading effects of changes and failures across your entire system.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "System-Wide Impact Analysis"
+                },
+                {
+                    text: "Log retention, archival, compliance, and governance policies help you manage storage costs while maintaining compliance with data retention requirements, audit trail standards, and regulatory obligations across your organization.",
+                    source: "https://docs.datadoghq.com/logs/archives/",
+                    title: "Comprehensive Log Governance"
+                },
+                {
+                    text: "Custom metric aggregation, calculation, business intelligence, and strategic analytics functions enable you to create sophisticated KPIs, performance indicators, and business insights that drive strategic decision-making across your organization.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Strategic Business Analytics"
+                },
+                {
+                    text: "APM dependency tracking, analysis, impact assessment, and strategic planning automatically maps service relationships and helps you understand the cascading effects of changes and failures for comprehensive system planning and optimization.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Strategic System Planning"
+                },
+                {
+                    text: "Metric anomaly detection, alerting, machine learning, and predictive analytics uses advanced statistical analysis and artificial intelligence to identify unusual patterns and trigger proactive notifications for potential issues before they impact business operations.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/anomaly/",
+                    title: "AI-Powered Predictive Monitoring"
+                },
+                {
+                    text: "Log-based alerting, monitoring, business event tracking, and operational intelligence can trigger notifications based on log volume, error rates, content patterns, and business-critical events to provide comprehensive operational visibility and business insights.",
+                    source: "https://docs.datadoghq.com/monitors/create/types/log/",
+                    title: "Comprehensive Business Intelligence"
+                },
+                {
+                    text: "Custom dashboard templates, sharing, collaboration, and governance capabilities allow you to create reusable dashboard configurations and share them across teams, environments, and stakeholders while maintaining consistency and compliance across your organization.",
+                    source: "https://docs.datadoghq.com/dashboards/",
+                    title: "Enterprise Dashboard Governance"
+                },
+                {
+                    text: "Trace-based performance analysis, optimization, capacity planning, and strategic resource management provides detailed insights into request latency, database queries, and external service calls for comprehensive strategic planning and resource optimization across your entire technology stack.",
+                    source: "https://docs.datadoghq.com/tracing/",
+                    title: "Strategic Resource Management"
+                },
+                {
+                    text: "Metric correlation analysis, visualization, root cause investigation, and strategic insights automatically identifies relationships between different metrics and helps you understand system dependencies, business impacts, and strategic opportunities for optimization and growth.",
+                    source: "https://docs.datadoghq.com/monitors/",
+                    title: "Strategic System Insights"
+                },
+                {
+                    text: "Log parsing, enrichment, analysis, business intelligence, and strategic operational insights automatically extracts structured data from log messages and enables comprehensive business insights, operational intelligence, and strategic decision-making capabilities across your entire organization.",
+                    source: "https://docs.datadoghq.com/logs/log_configuration/parsing/",
+                    title: "Strategic Operational Intelligence"
+                },
+                {
+                    text: "Custom metric submission APIs, SDKs, integration frameworks, and enterprise connectivity allow you to send business metrics and application-specific data directly to Datadog from any application, service, or system while maintaining security, compliance, and governance standards across your entire organization.",
+                    source: "https://docs.datadoghq.com/developers/metrics/",
+                    title: "Enterprise Metric Integration"
+                },
+                {
+                    text: "Service level objective tracking, reporting, business impact analysis, and strategic service management enables you to measure, monitor, and improve service reliability based on business-critical metrics, user experience, and strategic business objectives while driving continuous improvement and operational excellence across your entire organization.",
+                    source: "https://docs.datadoghq.com/monitors/service_level_objectives/",
+                    title: "Strategic Service Excellence"
                 }
             ];
 
@@ -417,7 +1061,6 @@
                 setupScreen.classList.add('hidden');
                 testScreen.classList.add('hidden');
                 resultsScreen.classList.remove('hidden');
-                hideToast(); // Hide any existing toast
                 
                 // Ensure results actions are visible (in case toast was dismissed)
                 resultsActions.classList.remove('hidden');
@@ -465,6 +1108,7 @@
                 accDisplay.textContent = '100';
                 errorsDisplay.textContent = '0';
                 stopWarningEffect();
+                countdownDisplay.classList.add('hidden');
             };
 
             const setNewPrompt = () => {
@@ -515,10 +1159,14 @@
                     const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
                     state.timeLeft = state.testDuration - elapsedTime;
                     timerDisplay.textContent = state.timeLeft;
+                    countdownNumber.textContent = state.timeLeft;
                     
-                    // Start warning effect when 10 seconds or less remain
+                    // Show countdown when 10 seconds or less remain
                     if (state.timeLeft <= 10 && state.timeLeft > 0) {
+                        countdownDisplay.classList.remove('hidden');
                         startWarningEffect();
+                    } else {
+                        countdownDisplay.classList.add('hidden');
                     }
                     
                     if(state.testActive) {
@@ -560,6 +1208,7 @@
                     state.warningTimer = null;
                     document.body.classList.remove('timer-warning');
                 }
+                countdownDisplay.classList.add('hidden');
             };
 
             const updateCaretPosition = () => {
