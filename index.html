@@ -60,7 +60,7 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0; }
         }
-        .correct { color: #4ade80; } /* green-400 */
+        .correct { color: #632CA6; } /* Datadog purple */
         .incorrect { color: #f87171; text-decoration: underline; } /* red-400 */
         .untyped { color: #9ca3af; } /* gray-400 */
         
@@ -86,19 +86,19 @@
         
         /* Timer Warning Animation */
         .timer-warning {
-            animation: flashRed 1s ease-in-out;
+            animation: flashPurple 1s ease-in-out;
         }
         
         .timer-warning::before {
-            background: rgba(239, 68, 68, 0.8) !important; /* solid red background */
+            background: rgba(99, 44, 166, 0.8) !important; /* solid purple background */
         }
         
-        @keyframes flashRed {
+        @keyframes flashPurple {
             0%, 100% { 
                 background-color: rgba(17, 24, 39, 0.85); /* normal background */
             }
             50% { 
-                background-color: rgba(239, 68, 68, 0.8); /* solid red flash */
+                background-color: rgba(99, 44, 166, 0.8); /* solid purple flash */
             }
         }
     </style>
@@ -107,14 +107,14 @@
 
     <!-- Datadog Logo Accent -->
     <div class="fixed top-8 right-8 z-5 pointer-events-none">
-        <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcompanieslogo.com%2Fimg%2Forig%2FDDOG-60ca9565.png%3Ft%3D1634120747&f=1&nofb=1&ipt=fe4e1b3b5b6e283f6f9205dbc7de1145a3d6392fb6c3dab316e6c94042e65832" 
+        <img src="https://imgix.datadoghq.com/img/about/presskit/logo-v/dd_vertical_white.png?auto=format&fit=max&w=847&dpr=2" 
              alt="Datadog Logo" 
              class="w-16 h-16 opacity-20 hover:opacity-30 transition-opacity duration-300">
     </div>
     
     <!-- Datadog Logo Accent Bottom Left -->
     <div class="fixed bottom-8 left-8 z-5 pointer-events-none">
-        <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcompanieslogo.com%2Fimg%2Forig%2FDDOG-60ca9565.png%3Ft%3D1634120747&f=1&nofb=1&ipt=fe4e1b3b5b6e283f6f9205dbc7de1145a3d6392fb6c3dab316e6c94042e65832" 
+        <img src="https://imgix.datadoghq.com/img/about/presskit/logo-v/dd_vertical_white.png?auto=format&fit=max&w=847&dpr=2" 
              alt="Datadog Logo" 
              class="w-12 h-12 opacity-10 hover:opacity-20 transition-opacity duration-300">
     </div>
@@ -128,9 +128,9 @@
             <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md mx-auto space-y-4">
                 <div>
                     <label for="user-name" class="block text-sm font-medium text-gray-300 mb-2">Your Name</label>
-                    <input type="text" id="user-name" class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="Enter your name...">
+                    <input type="text" id="user-name" class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-purple-500 focus:outline-none" placeholder="Enter your name..." style="--tw-ring-color: #632CA6;">
                 </div>
-                <button id="start-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
+                <button id="start-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105" style="background-color: #632CA6;">
                     Start Typing Test
                 </button>
             </div>
@@ -159,7 +159,7 @@
             </div>
             <div id="text-prompt-container" class="relative bg-gray-800 p-6 rounded-lg text-2xl leading-relaxed font-mono tracking-wider mb-4" style="min-height: 160px;">
                 <p id="text-prompt"></p>
-                <div id="caret" class="caret absolute bg-indigo-500" style="width: 2px; height: 2rem; top: 1.5rem; left: 1.5rem;"></div>
+                <div id="caret" class="caret absolute" style="width: 2px; height: 2rem; top: 1.5rem; left: 1.5rem; background-color: #632CA6;"></div>
             </div>
             <input type="text" id="typing-input" class="opacity-0 absolute" autofocus>
             
@@ -204,12 +204,12 @@
             </div>
             <div class="mb-6">
                 <p class="text-gray-400 text-sm mb-2">Ready to try Datadog?</p>
-                <a href="https://app.datadoghq.com" target="_blank" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-md transition duration-300 transform hover:scale-105">
+                <a href="https://app.datadoghq.com" target="_blank" class="inline-block text-white font-bold py-3 px-6 rounded-md transition duration-300 transform hover:scale-105" style="background-color: #632CA6;">
                     Try Datadog Free
                 </a>
             </div>
             <div id="results-actions" class="flex justify-center space-x-4">
-                <button id="new-test-btn" class="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md transition duration-300">New Test</button>
+                <button id="new-test-btn" class="w-1/2 text-white font-bold py-3 px-4 rounded-md transition duration-300" style="background-color: #632CA6;">New Test</button>
                 <button id="copy-url-btn" class="w-1/2 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-md transition duration-300">Copy URL</button>
             </div>
         </div>
@@ -221,7 +221,7 @@
         <div id="bits-toast" class="hidden bg-gray-800 border border-gray-600 rounded-lg p-4 shadow-2xl max-w-md mx-auto pointer-events-auto">
             <div class="flex items-start space-x-3">
                 <div class="flex-shrink-0">
-                    <img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcompanieslogo.com%2Fimg%2Forig%2FDDOG-60ca9565.png%3Ft%3D1634120747&f=1&nofb=1&ipt=fe4e1b3b5b6e283f6f9205dbc7de1145a3d6392fb6c3dab316e6c94042e65832" 
+                    <img src="https://imgix.datadoghq.com/img/about/presskit/logo-v/dd_vertical_white.png?auto=format&fit=max&w=847&dpr=2" 
                          alt="Datadog Logo" 
                          class="w-8 h-8 rounded-full object-cover">
                 </div>
@@ -232,7 +232,7 @@
                     </div>
                     <p class="text-gray-300 mb-3">Great job! Would you like to start over or share your result?</p>
                     <div class="flex space-x-2">
-                        <button id="toast-new-test" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm transition duration-200">
+                        <button id="toast-new-test" class="text-white px-3 py-1 rounded text-sm transition duration-200" style="background-color: #632CA6;">
                             Start Over
                         </button>
                         <button id="toast-share" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm transition duration-200">
