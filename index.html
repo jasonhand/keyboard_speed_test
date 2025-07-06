@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Datadog Typing Test & Keyboard Analyzer</title>
-    <script>
-        (function(h,o,u,n,d) {
-          h=h[d]=h[d]||{q:[],onReady:function(c){h.q.push(c)}}
-          d=o.createElement(u);d.async=1;d.src=n
-          n=o.getElementsByTagName(u)[0];n.parentNode.insertBefore(d,n)
-        })(window,document,'script','https://www.datadoghq-browser-agent.com/us1/v6/datadog-rum.js','DD_RUM')
-        window.DD_RUM.onReady(function() {
-          window.DD_RUM.init({
-            clientToken: 'pubc7932cbc69c976016659135760251538',
+    <title>Typing Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script type="module">
+        import { datadogRum } from 'https://unpkg.com/@datadog/browser-rum@4.0.0/index.js';
+
+        datadogRum.init({
             applicationId: 'b7e70078-1335-4a18-abc8-30a557d61174',
+            clientToken: 'pubc7932cbc69c976016659135760251538',
             // `site` refers to the Datadog site parameter of your organization
             // see https://docs.datadoghq.com/getting_started/site/
             site: 'datadoghq.com',
@@ -24,9 +22,8 @@
             sessionSampleRate: 100,
             sessionReplaySampleRate: 100,
             defaultPrivacyLevel: 'mask-user-input',
-          });
-        })
-      </script>
+        });
+    </script>
 
     <style>
         body {
@@ -103,26 +100,12 @@
 </head>
 <body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen p-4">
 
-    <!-- Datadog Logo Accent -->
-    <div class="fixed top-8 right-8 z-5 pointer-events-none">
-        <img src="https://imgix.datadoghq.com/img/about/presskit/logo-v/dd_vertical_white.png?auto=format&fit=max&w=847&dpr=2" 
-             alt="Datadog Logo" 
-             class="w-16 h-16 opacity-20 hover:opacity-30 transition-opacity duration-300">
-    </div>
-    
-    <!-- Datadog Logo Accent Bottom Left -->
-    <div class="fixed bottom-8 left-8 z-5 pointer-events-none">
-        <img src="https://imgix.datadoghq.com/img/about/presskit/logo-v/dd_vertical_white.png?auto=format&fit=max&w=847&dpr=2" 
-             alt="Datadog Logo" 
-             class="w-12 h-12 opacity-10 hover:opacity-20 transition-opacity duration-300">
-    </div>
+
 
     <div id="app" class="w-full max-w-4xl mx-auto relative z-10">
 
         <!-- Setup Screen -->
         <div id="setup-screen" class="text-center space-y-8">
-            <h1 class="text-5xl font-bold text-white">Datadog Typing Test</h1>
-            <p class="text-lg text-gray-400">Test your typing speed with Datadog documentation. Share your results and compete on the leaderboard!</p>
             <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md mx-auto space-y-4">
                 <div>
                     <label for="user-name" class="block text-sm font-medium text-gray-300 mb-2">Your Name</label>
@@ -190,10 +173,7 @@
                     <p id="result-keyboard" class="text-2xl font-semibold mt-3 truncate" title="User Name">N/A</p>
                 </div>
             </div>
-            <div class="mb-6">
-                <p class="text-gray-400 text-sm mb-2">Share Your Result</p>
-                <input type="text" id="share-url" class="w-full bg-gray-600 border border-gray-500 rounded-md px-3 py-2 text-gray-200 focus:outline-none" readonly>
-            </div>
+
             <div id="datadog-source" class="mb-6 hidden">
                 <p class="text-gray-400 text-sm mb-2">Text Source</p>
                 <a id="datadog-link" href="#" target="_blank" class="text-indigo-400 hover:text-indigo-300 underline break-all">
@@ -218,11 +198,6 @@
     <div id="toast-container" class="fixed bottom-4 left-4 right-4 z-50 pointer-events-none">
         <div id="bits-toast" class="hidden bg-gray-800 border border-gray-600 rounded-lg p-4 shadow-2xl max-w-md mx-auto pointer-events-auto">
             <div class="flex items-start space-x-3">
-                <div class="flex-shrink-0">
-                    <img src="https://imgix.datadoghq.com/img/about/presskit/logo-v/dd_vertical_white.png?auto=format&fit=max&w=847&dpr=2" 
-                         alt="Datadog Logo" 
-                         class="w-8 h-8 rounded-full object-cover">
-                </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center space-x-2 mb-2">
                         <span class="text-white font-semibold">Bits AI</span>
@@ -280,7 +255,7 @@
             const resultWpm = document.getElementById('result-wpm');
             const resultAcc = document.getElementById('result-acc');
             const resultKeyboard = document.getElementById('result-keyboard');
-            const shareUrlInput = document.getElementById('share-url');
+
             const resultsActions = document.getElementById('results-actions');
             const newTestBtn = document.getElementById('new-test-btn');
             const copyUrlBtn = document.getElementById('copy-url-btn');
@@ -1009,14 +984,14 @@
             const addEventListeners = () => {
                 startBtn.addEventListener('click', startTest);
                 restartBtn.addEventListener('click', () => {
-                    if (window.DD_RUM && typeof window.DD_RUM.addAction === 'function') {
-                        window.DD_RUM.addAction('restart_test', {
-                            context: {
-                                timeLeft: state.timeLeft,
-                                typedChars: state.typedChars
-                            }
-                        });
-                    }
+                                    if (typeof datadogRum !== 'undefined') {
+                    datadogRum.addAction('restart_test', {
+                        context: {
+                            timeLeft: state.timeLeft,
+                            typedChars: state.typedChars
+                        }
+                    });
+                }
                     resetTest();
                 });
                 newTestBtn.addEventListener('click', () => {
@@ -1070,8 +1045,8 @@
                 state.useDatadog = true;
                 timerDisplay.textContent = state.timeLeft;
                 
-                if (window.DD_RUM && typeof window.DD_RUM.addAction === 'function') {
-                    window.DD_RUM.addAction('start_test', {
+                if (typeof datadogRum !== 'undefined') {
+                    datadogRum.addAction('start_test', {
                         context: {
                             userName: state.userName,
                             testDuration: state.testDuration,
@@ -1237,8 +1212,8 @@
                 const finalWpm = elapsedTime > 0 ? Math.round((state.correctChars / 5) / (elapsedTime / 60)) : 0;
                 const finalAccuracy = state.typedChars > 0 ? Math.round((state.correctChars / state.typedChars) * 100) : 100;
                 
-                if (window.DD_RUM && typeof window.DD_RUM.addAction === 'function') {
-                    window.DD_RUM.addAction('test_completed', {
+                if (typeof datadogRum !== 'undefined') {
+                    datadogRum.addAction('test_completed', {
                         context: {
                             wpm: finalWpm,
                             accuracy: finalAccuracy,
@@ -1287,7 +1262,6 @@
                 }
                 
                 const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-                shareUrlInput.value = url;
                 window.history.pushState({ wpm, accuracy }, '', url);
                 
                 // Add to leaderboard
@@ -1295,17 +1269,28 @@
             };
 
             const copyShareUrl = () => {
-                if (window.DD_RUM && typeof window.DD_RUM.addAction === 'function') {
-                    window.DD_RUM.addAction('copy_share_url');
+                if (typeof datadogRum !== 'undefined') {
+                    datadogRum.addAction('copy_share_url');
                 }
-                shareUrlInput.select();
                 try {
-                    document.execCommand('copy');
-                    copyUrlBtn.textContent = 'Copied!';
-                    setTimeout(() => { copyUrlBtn.textContent = 'Copy URL'; }, 2000);
+                    navigator.clipboard.writeText(window.location.href).then(() => {
+                        copyUrlBtn.textContent = 'Copied!';
+                        setTimeout(() => { copyUrlBtn.textContent = 'Copy URL'; }, 2000);
+                    });
                 } catch (err) {
-                    console.error('Failed to copy URL: ', err);
-                    alert('Failed to copy. Please copy the URL manually.');
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = window.location.href;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        copyUrlBtn.textContent = 'Copied!';
+                        setTimeout(() => { copyUrlBtn.textContent = 'Copy URL'; }, 2000);
+                    } catch (err) {
+                        alert('Failed to copy. Please copy the URL manually: ' + window.location.href);
+                    }
+                    document.body.removeChild(textArea);
                 }
             };
             
@@ -1327,7 +1312,7 @@
                     datadogSource.classList.add('hidden');
                 }
 
-                shareUrlInput.value = window.location.href;
+
                 showResultsScreen();
             };
 
